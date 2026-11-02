@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beatmaster DJ — Music Planner &amp; Event Questionnaire</title>
+<meta name="description" content="Plan your night with DJ Hersky: special moments, must-play songs, do-not-play list, timeline, and everything your DJ needs — in one place.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b10; --bg2:#12121a; --card:#17171f; --card2:#1d1d28;
+  --line:rgba(255,255,255,.09); --txt:#f4f1ea; --mut:#a7a3b5;
+  --gold:#d9a441; --gold2:#f0c569; --rose:#e39aa8; --lav:#b7a6e8;
+  --cyan:#37c8e8; --red:#e4574d; --green:#43c47c;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,rgba(217,164,65,.14),transparent 60%),radial-gradient(900px 500px at -10% 20%,rgba(183,166,232,.10),transparent 55%),var(--bg);color:var(--txt);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+h1,h2,.display{font-family:"Playfair Display",Georgia,serif}
+a{color:var(--gold2)}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:15px;color:var(--txt);background:#0e0e14;border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(217,164,65,.55);border-color:var(--gold)}
+textarea{resize:vertical;min-height:74px}
+label{display:block;font-size:13px;font-weight:600;letter-spacing:.02em;margin:0 0 6px}
+label small{display:block;font-weight:400;color:var(--mut);margin-top:2px}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 140px}
+/* header */
+.hero{padding:44px 0 10px;text-align:center}
+.hero .kicker{letter-spacing:.32em;font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase}
+.hero h1{font-size:clamp(34px,6vw,54px);margin:10px 0 6px;line-height:1.05}
+.hero h1 span{background:linear-gradient(92deg,var(--gold2),var(--rose),var(--lav));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mut);max-width:620px;margin:0 auto;font-size:16px}
+.hero .meta{margin-top:14px;font-size:13px;color:var(--mut)}
+.hero .meta b{color:var(--txt)}
+/* progress */
+.progressbar{position:sticky;top:0;z-index:40;background:rgba(11,11,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 0}
+.progressbar .row{display:flex;align-items:center;gap:12px;max-width:980px;margin:0 auto;padding:0 16px}
+.track{flex:1;height:8px;background:#23232f;border-radius:99px;overflow:hidden}
+.fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--rose));border-radius:99px;transition:width .35s}
+.pct{font-weight:800;font-size:14px;min-width:44px;text-align:right}
+.saved{font-size:12px;color:var(--green);white-space:nowrap}
+/* stepper */
+.steps{display:flex;gap:8px;overflow-x:auto;padding:16px 2px 4px;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.stepbtn{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--mut);border-radius:99px;padding:8px 14px;font-size:13px;font-weight:600;display:flex;gap:7px;align-items:center}
+.stepbtn .dot{width:20px;height:20px;border-radius:50%;background:#26262f;color:var(--txt);font-size:11px;display:inline-flex;align-items:center;justify-content:center;font-weight:800}
+.stepbtn.active{color:#14100a;background:linear-gradient(92deg,var(--gold2),var(--gold));border-color:transparent}
+.stepbtn.active .dot{background:rgba(0,0,0,.25);color:#14100a}
+.stepbtn.done{color:var(--txt);border-color:rgba(67,196,124,.55)}
+.stepbtn.done .dot{background:var(--green);color:#08130c}
+/* sections */
+section.panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px;margin-top:18px}
+section.panel.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+section.panel h2{font-size:27px;margin:0 0 4px}
+section.panel .sub{color:var(--mut);margin:0 0 20px;font-size:15px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
+.field{margin-bottom:2px}
+.hint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.callout{border:1px solid rgba(217,164,65,.4);background:rgba(217,164,65,.08);border-radius:12px;padding:14px 16px;font-size:14px;margin:0 0 18px}
+.callout.blue{border-color:rgba(55,200,232,.35);background:rgba(55,200,232,.07)}
+.callout.red{border-color:rgba(228,87,77,.5);background:rgba(228,87,77,.08)}
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:8px 13px;border-radius:99px;font-size:13.5px;font-weight:600;transition:.15s}
+.chip:hover{border-color:var(--gold)}
+.chip.love{background:linear-gradient(92deg,var(--gold2),var(--gold));color:#171106;border-color:transparent}
+.chip.never{background:rgba(228,87,77,.16);border-color:var(--red);color:#ffb3ad;text-decoration:line-through}
+.chip.pick{background:rgba(183,166,232,.2);border-color:var(--lav);color:#ded4ff}
+.chip .st{font-size:11px;opacity:.85;font-weight:800;margin-left:5px;text-transform:uppercase;letter-spacing:.04em}
+/* toggle rows */
+.togglerow{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.togglerow:last-child{border-bottom:none}
+.togglerow .t{font-weight:600;font-size:15px}
+.togglerow .d{color:var(--mut);font-size:13px}
+.switch{position:relative;width:52px;height:29px;flex:0 0 auto}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#2a2a36;border-radius:99px;transition:.2s;cursor:pointer}
+.slider:before{content:"";position:absolute;width:23px;height:23px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}
+.switch input:checked + .slider{background:var(--gold)}
+.switch input:checked + .slider:before{transform:translateX(23px)}
+select.seg{appearance:none}
+/* segmented */
+.seg{display:flex;background:#0e0e14;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{flex:1;background:transparent;border:none;color:var(--mut);padding:11px 6px;font-weight:700;font-size:13.5px}
+.seg button.on{background:linear-gradient(92deg,var(--gold2),var(--gold));color:#171106}
+/* moments */
+.moment{border:1px solid var(--line);background:var(--card2);border-radius:14px;padding:16px;margin-bottom:14px}
+.moment h3{margin:0 0 2px;font-size:16.5px;display:flex;align-items:center;gap:9px}
+.moment h3 .ico{font-size:19px}
+.moment .when{color:var(--mut);font-size:12.5px;margin:0 0 12px}
+.moment .row3{display:grid;grid-template-columns:1.2fr 1fr;gap:10px}
+@media(max-width:720px){.moment .row3{grid-template-columns:1fr}}
+.suggest{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.suggest button{font-size:12px;border:1px dashed rgba(217,164,65,.55);color:var(--gold2);background:transparent;border-radius:99px;padding:5px 10px}
+.mini-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--mut);margin-top:10px;font-weight:500}
+.mini-check input{width:17px;height:17px;accent-color:var(--gold)}
+/* boards */
+.board-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.board-tab{border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--mut);padding:12px 16px;text-align:left;flex:1;min-width:170px}
+.board-tab b{display:block;color:var(--txt);font-size:15px}
+.board-tab .n{font-size:12px}
+.board-tab.active{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.board-tab.dnp.active{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+.songlist{margin-top:14px;display:grid;gap:8px}
+.song{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.song .idx{color:var(--mut);font-size:12px;font-weight:800;min-width:22px}
+.song .st{flex:1;min-width:0}
+.song .st b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14.5px}
+.song .st span{color:var(--mut);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.song.conflict{border-color:var(--red);background:rgba(228,87,77,.09)}
+.iconbtn{background:transparent;border:none;color:var(--mut);font-size:16px;padding:6px;border-radius:8px}
+.iconbtn:hover{color:#fff;background:rgba(255,255,255,.07)}
+.empty{border:1.5px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--mut);font-size:14px}
+.meter{font-size:13px;color:var(--mut);margin-top:10px}
+.meter b{color:var(--gold2)}
+/* timeline */
+.tlrow{display:grid;grid-template-columns:110px 1fr 34px;gap:9px;margin-bottom:9px;align-items:start}
+.tlrow textarea{min-height:42px}
+@media(max-width:720px){.tlrow{grid-template-columns:92px 1fr 34px}}
+/* nav buttons */
+.navbtns{display:flex;justify-content:space-between;gap:12px;margin-top:24px}
+.btn{border:none;border-radius:12px;padding:13px 22px;font-weight:800;font-size:15px;background:linear-gradient(92deg,var(--gold2),var(--gold));color:#171106}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+.btn.blue{background:linear-gradient(92deg,#6fd8f2,var(--cyan));color:#06222b}
+.btn.big{width:100%;padding:16px;font-size:16px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+/* review */
+.review-sec{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--card2)}
+.review-sec h3{margin:0 0 8px;font-size:16px}
+.review-sec pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;color:#ddd9cf;margin:0}
+.missing{color:#ffb3ad;font-size:13.5px;margin:4px 0}
+.okline{color:var(--green);font-size:13.5px}
+pre.runsheet{background:#0a0a0f;border:1px solid var(--line);border-radius:12px;padding:18px;white-space:pre-wrap;font-size:13px;max-height:460px;overflow:auto;color:#e8e4da}
+.actions{display:grid;gap:10px;margin-top:14px}
+@media(min-width:720px){.actions{grid-template-columns:1fr 1fr}}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(90px);background:#1e2b21;border:1px solid var(--green);color:#d9ffe6;padding:12px 20px;border-radius:99px;font-weight:700;font-size:14px;z-index:99;transition:.3s;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+footer{margin-top:34px;text-align:center;color:var(--mut);font-size:13px}
+footer b{color:var(--txt)}
+#lovable-badge{display:none!important}
+@media print{
+  body{background:#fff;color:#111}
+  .progressbar,.steps,.navbtns,.actions,.toast,footer .no-print{display:none!important}
+  section.panel{display:none!important}
+  section.panel.printable{display:block!important;background:#fff;color:#111;border:none;padding:0}
+  pre.runsheet{max-height:none;background:#fff;color:#111;border:1px solid #ccc}
+  .review-sec{background:#fff;color:#111}
+}
+</style>
+</head>
+<body>
+
+<div class="progressbar">
+  <div class="row">
+    <span style="font-weight:800;font-size:13px;letter-spacing:.06em">🎧 MUSIC PLANNER</span>
+    <div class="track"><div class="fill" id="fill"></div></div>
+    <span class="pct" id="pct">0%</span>
+    <span class="saved" id="savedTag">✓ Auto-saves as you type</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="kicker">Beatmaster DJ · DJ Hersky</div>
+    <h1>Plan the night<br><span>they'll never forget</span></h1>
+    <p>Your whole event questionnaire and song selection in one place — special moments, must-plays, the do-not-play list, your timeline, and everything Jake needs to run your night perfectly.</p>
+    <div class="meta">Takes about <b>10–15 minutes</b> · You can <b>stop and come back anytime</b> — it saves on this device as you go · Deadline: <b>14 days before your event</b></div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+  <div id="panels"></div>
+
+  <footer>
+    <p><b>Beatmaster DJ</b> · DJ Hersky · Ottawa, ON<br>
+    Questions? Call/text <b>(613) 837-4488</b> · hersky.ott@gmail.com</p>
+    <p class="no-print" style="font-size:12px">Your answers save privately in this browser until you send them — nothing is uploaded while you type.</p>
+  </footer>
+</div>
+
+<div class="toast" id="toast">Saved ✓</div>
+
+<script>
+"use strict";
+/* ============================================================
+   Beatmaster DJ — Music Planner & Event Questionnaire v2
+   Sections: Event · People · Moments · Songs · Vibe · Timeline · Logistics · Review
+   Data model mirrors the Vibe Planner sync shape (music / notes /
+   playlists / timeline / addons) so it can plug into the existing
+   Beatmaster DJ sync later, plus questionnaire fields v1 never asked.
+   ============================================================ */
+
+const LS_KEY = "beatmaster_music_planner_v2";
+
+const GENRES = ["Top 40 / Pop","Hip-Hop / R&B","Country","Rock Classics","Disco / Funk","Motown / Soul","EDM / Dance","Latin","2000s Throwbacks","90s Throwbacks","80s","70s","Oldies (50s/60s)","Indie / Alt","Punk / Emo","Jazz / Swing","French / Francophone","Line Dances","Slow Songs / Ballads"];
+const DECADES = ["2020s","2010s","2000s","90s","80s","70s","60s & earlier"];
+
+const MOMENTS_WEDDING = [
+  {id:"ceremony_prelude", ico:"🌿", name:"Ceremony — guest arrival / prelude", when:"As guests are seated, before the ceremony starts", ph:"Style or a few songs — or leave it to Jake", suggestions:["Vitamin String Quartet — covers","Pachelbel — Canon in D","Hal Leonard — acoustic covers"]},
+  {id:"processional", ico:"💐", name:"Ceremony — wedding party processional", when:"Wedding party walks down the aisle", ph:"Song for the wedding party entrance", suggestions:["Christina Perri — A Thousand Years (instrumental)","Bridgerton / VSQ — Wildest Dreams"]},
+  {id:"bride_entrance", ico:"👰", name:"Ceremony — bride / partner entrance", when:"The big walk down the aisle", ph:"Your entrance song", suggestions:["Elvis Presley — Can't Help Falling in Love","Ed Sheeran — Perfect (instrumental)"]},
+  {id:"recessional", ico:"🎉", name:"Ceremony — recessional (you're married!)", when:"Walking back up the aisle as newlyweds — go upbeat", ph:"Celebration song", suggestions:["Stevie Wonder — Signed, Sealed, Delivered","Natalie Cole — This Will Be"]},
+  {id:"grand_entrance", ico:"🚪", name:"Grand entrance — wedding party", when:"Wedding party is announced into the reception", ph:"Song for the party's entrance", suggestions:["Black Eyed Peas — I Gotta Feeling","Bruno Mars — 24K Magic"]},
+  {id:"couple_entrance", ico:"✨", name:"Grand entrance — the two of you", when:"Your first entrance as a married couple — can be the same song or its own", ph:"Your entrance song", suggestions:["Earth, Wind & Fire — September","Pitbull ft. Ne-Yo — Time of Our Lives"]},
+  {id:"first_dance", ico:"💃", name:"First dance", when:"Your first dance as a married couple", ph:"The song", suggestions:["Ed Sheeran — Perfect","Etta James — At Last","Dan + Shay — Speechless"]},
+  {id:"parent_dance_1", ico:"❤️", name:"Parent dance #1", when:"e.g. Father–daughter — tell us who's dancing in the notes", ph:"Song + who's dancing", suggestions:["Bob Carlisle — Butterfly Kisses","Tim McGraw — My Little Girl"]},
+  {id:"parent_dance_2", ico:"💙", name:"Parent dance #2", when:"e.g. Mother–son — tell us who's dancing in the notes", ph:"Song + who's dancing", suggestions:["Boyz II Men — A Song for Mama","Phil Collins — You'll Be in My Heart"]},
+  {id:"cake", ico:"🎂", name:"Cake cutting", when:"While you cut the cake", ph:"Sweet song", suggestions:["Maroon 5 — Sugar","Archies — Sugar, Sugar"]},
+  {id:"bouquet", ico:"💐", name:"Bouquet toss", when:"Single ladies (and anyone who wants in) to the floor", ph:"Hype song", suggestions:["Beyoncé — Single Ladies","Cyndi Lauper — Girls Just Want to Have Fun"]},
+  {id:"garter", ico:"🎩", name:"Garter toss", when:"The garter toss moment (skip it if it's not your thing)", ph:"Fun song — or mark 'skip'", suggestions:["Queen — Another One Bites the Dust","Def Leppard — Pour Some Sugar on Me"]},
+  {id:"last_dance", ico:"🌙", name:"Last dance of the night", when:"The final song everyone remembers", ph:"Your closer", suggestions:["Semisonic — Closing Time","Queen — Don't Stop Me Now","Journey — Don't Stop Believin'"]},
+  {id:"private_last", ico:"🤫", name:"Private last dance (optional)", when:"Just the two of you, empty room, after guests step out", ph:"One last song, just yours", suggestions:[]}
+];
+const MOMENTS_PARTY = [
+  {id:"arrival", ico:"🌿", name:"Arrival / background", when:"As guests arrive and settle in", ph:"Style or a few songs", suggestions:[]},
+  {id:"opener", ico:"🎉", name:"Party opener", when:"The song that officially starts the party", ph:"Kick-off song", suggestions:["Black Eyed Peas — I Gotta Feeling"]},
+  {id:"spotlight", ico:"✨", name:"Spotlight moment", when:"Birthday / anniversary / big announcement moment", ph:"Song for the moment", suggestions:[]},
+  {id:"last_dance", ico:"🌙", name:"Last song of the night", when:"The final song everyone remembers", ph:"Your closer", suggestions:["Semisonic — Closing Time"]}
+];
+
+const BOARD_SUGGESTIONS = {
+  must: ["Bruno Mars — Uptown Funk","ABBA — Dancing Queen","Whitney Houston — I Wanna Dance with Somebody","Mark Ronson — Uptown Funk","Lizzo — About Damn Time","Dua Lipa — Levitating","Earth, Wind & Fire — September","Shania Twain — Man! I Feel Like a Woman"],
+  ifcan: ["Taylor Swift — Love Story","Pitbull — Fireball","Flo Rida — Good Feeling","Walk the Moon — Shut Up and Dance","Carly Rae Jepsen — Call Me Maybe","One Direction — What Makes You Beautiful"],
+  dnp: ["The Chicken Dance","Macarena","YMCA","Cotton Eye Joe","Ed Sheeran — Shape of You","Pharrell — Happy","Any line dances","Any country"]
+};
+
+const WEDDING_TIMELINE_TEMPLATE = [
+  {time:"4:00 PM", title:"Ceremony", details:""},
+  {time:"4:30 PM", title:"Cocktail hour", details:"Photos for the couple"},
+  {time:"6:00 PM", title:"Guests seated · Grand entrance", details:""},
+  {time:"6:15 PM", title:"Welcome / blessing", details:""},
+  {time:"6:30 PM", title:"Dinner service starts", details:""},
+  {time:"7:30 PM", title:"Speeches / toasts", details:"Between courses"},
+  {time:"8:30 PM", title:"First dance + parent dances", details:""},
+  {time:"9:00 PM", title:"Dance floor opens", details:""},
+  {time:"10:30 PM", title:"Late-night snack", details:""},
+  {time:"11:00 PM", title:"Bouquet / garter toss", details:""},
+  {time:"12:45 AM", title:"Last dance", details:""},
+  {time:"1:00 AM", title:"Night ends", details:""}
+];
+
+function blankState(){
+  return {
+    event:{type:"Wedding", names:"", partner2:"", email:"", phone:"", date:"", guestCount:"", packageName:"", venue:"", venueAddress:"", ceremonySame:"", rainPlan:""},
+    people:{pronunciations:"", intros:[{names:"",note:""}], speeches:"", mcStyle:"hype", mcNotes:"", traditions:"", noPhoto:""},
+    moments:{},
+    boards:{must:[], ifcan:[], dnp:[]},
+    playlistLinks:{spotify:"", apple:"", youtube:"", other:""},
+    vibe:{genres:{}, decades:[], cleanOnly:false, guestRequests:"dj", requestsNote:"", dinnerVibe:"", cocktailVibe:"", energy:3, volumeNote:"", slowSets:""},
+    timeline:[],
+    logistics:{loadIn:"", djArrival:"", dayContact:"", coordinator:"", photographer:"", otherVendors:"", power:"", parking:"", addons:[], finalNotes:"", deadlineOk:false},
+    submittedAt:""
+  };
+}
+MOMENTS_WEDDING.concat(MOMENTS_PARTY).forEach(m=>{});
+let S = blankState();
+try{
+  const raw = localStorage.getItem(LS_KEY);
+  if(raw){ const parsed = JSON.parse(raw); if(parsed && typeof parsed==="object"){ S = Object.assign(blankState(), parsed); } }
+}catch(e){}
+
+let curSection = 0, curBoard = "must";
+const SECTIONS = [
+  {id:"event", label:"Your Event"},
+  {id:"people", label:"People & MC"},
+  {id:"moments", label:"Special Moments"},
+  {id:"songs", label:"Song Lists"},
+  {id:"vibe", label:"Your Vibe"},
+  {id:"timeline", label:"Timeline"},
+  {id:"logistics", label:"Logistics"},
+  {id:"review", label:"Review & Send"}
+];
+
+function momentsFor(){
+  return (S.event.type==="Wedding") ? MOMENTS_WEDDING : MOMENTS_PARTY;
+}
+function save(showTag){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
+  const t=document.getElementById("savedTag");
+  if(t){ t.textContent="✓ Saved just now"; clearTimeout(window._sv); window._sv=setTimeout(()=>{t.textContent="✓ Auto-saves as you type";},2200); }
+  updateProgress();
+}
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove("show"),2400);
+}
+function esc(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function songKey(title, artist){ return (String(title||"").trim().toLowerCase()+"|"+String(artist||"").trim().toLowerCase()); }
+
+/* ---------- bulk paste parser (shared, testable) ---------- */
+function parseSongLines(text){
+  const out=[]; const seen=new Set();
+  String(text||"").split(/\n+/).forEach(line=>{
+    let l=line.trim().replace(/^\d+[.)]\s*/,"").replace(/^[-•*]\s*/,"").trim();
+    if(!l) return;
+    // Spotify / YouTube links on their own line are kept as link-songs
+    let title="", artist="";
+    const byIdx = l.toLowerCase().lastIndexOf(" by ");
+    const dashIdx = l.indexOf(" - ");
+    if(dashIdx>0){ artist=l.slice(0,dashIdx).trim(); title=l.slice(dashIdx+3).trim(); }
+    else if(byIdx>0){ title=l.slice(0,byIdx).trim(); artist=l.slice(byIdx+4).trim(); }
+    else { title=l; }
+    title=title.replace(/\s*\((explicit|clean|remaster(ed)?[^)]*)\)\s*$/i,"").trim();
+    const k=songKey(title,artist);
+    if(!title || seen.has(k)) return;
+    seen.add(k); out.push({title, artist});
+  });
+  return out;
+}
+
+/* ---------- completeness / progress ---------- */
+function sectionDone(i){
+  const id=SECTIONS[i].id;
+  if(id==="event") return !!(S.event.names && S.event.email && S.event.date);
+  if(id==="people") return !!(S.people.pronunciations || S.people.intros.some(r=>r.names.trim()) || S.people.speeches);
+  if(id==="moments") return momentsFor().some(m=>{ const v=S.moments[m.id]; return v && (v.title?.trim() || v.skip || v.surprise); });
+  if(id==="songs") return (S.boards.must.length+S.boards.ifcan.length+S.boards.dnp.length)>0;
+  if(id==="vibe") return Object.keys(S.vibe.genres).length>0 || S.vibe.decades.length>0;
+  if(id==="timeline") return S.timeline.length>0;
+  if(id==="logistics") return !!(S.logistics.dayContact || S.logistics.loadIn || S.logistics.finalNotes);
+  if(id==="review") return !!S.submittedAt;
+  return false;
+}
+function overallPct(){
+  let checks=[];
+  checks.push(!!S.event.names, !!S.event.email, !!S.event.date, !!S.event.venue);
+  checks.push(momentsFor().filter(m=>{const v=S.moments[m.id]; return v&&(v.title?.trim()||v.skip||v.surprise);}).length>=Math.min(4,momentsFor().length));
+  checks.push(S.boards.must.length>=5, S.boards.dnp.length>=1);
+  checks.push(Object.keys(S.vibe.genres).length>=4, S.timeline.length>=4, !!S.logistics.dayContact);
+  const done=checks.filter(Boolean).length;
+  return Math.round(done/checks.length*100);
+}
+function updateProgress(){
+  const p=overallPct();
+  const f=document.getElementById("fill"), t=document.getElementById("pct");
+  if(f) f.style.width=p+"%"; if(t) t.textContent=p+"%";
+  document.querySelectorAll(".stepbtn").forEach((b,i)=>{ b.classList.toggle("done", sectionDone(i)); });
+}
+function conflicts(){
+  const map={}; const out=[];
+  ["must","ifcan"].forEach(b=>{ S.boards[b].forEach(s=>{ map[songKey(s.title,s.artist)]=b; }); });
+  S.boards.dnp.forEach(s=>{ const k=songKey(s.title,s.artist); if(map[k]) out.push(s.title); });
+  return out;
+}
+
+/* ---------- rendering ---------- */
+const panelsEl=document.getElementById("panels");
+const stepsEl=document.getElementById("steps");
+function renderSteps(){
+  stepsEl.innerHTML=SECTIONS.map((s,i)=>`<button class="stepbtn ${i===curSection?'active':''}" onclick="go(${i})"><span class="dot">${sectionDone(i)?'✓':(i+1)}</span>${s.label}</button>`).join("");
+}
+function go(i){
+  curSection=i; renderSteps(); renderPanel(); window.scrollTo({top:120,behavior:"smooth"});
+}
+function navBtns(){
+  return `<div class="navbtns">
+    ${curSection>0?`<button class="btn ghost" onclick="go(${curSection-1})">← Back</button>`:`<span></span>`}
+    ${curSection<SECTIONS.length-1?`<button class="btn" onclick="go(${curSection+1})">Continue →</button>`:`<span></span>`}
+  </div>`;
+}
+function field(label, inner, hint){
+  return `<div class="field"><label>${label}</label>${inner}${hint?`<div class="hint">${hint}</div>`:""}</div>`;
+}
+function inp(path, ph, type){
+  const v=path.split(".").reduce((o,k)=>o?.[k], S) ?? "";
+  return `<input type="${type||'text'}" value="${esc(v)}" placeholder="${esc(ph||'')}" oninput="setP('${path}',this.value)">`;
+}
+function ta(path, ph, rows){
+  const v=path.split(".").reduce((o,k)=>o?.[k], S) ?? "";
+  return `<textarea rows="${rows||3}" placeholder="${esc(ph||'')}" oninput="setP('${path}',this.value)">${esc(v)}</textarea>`;
+}
+function setP(path, val){
+  const ks=path.split("."); let o=S; ks.slice(0,-1).forEach(k=>o=o[k]); o[ks[ks.length-1]]=val; save();
+  if(path==="event.type"){ renderPanel(); }
+}
+function renderPanel(){
+  const id=SECTIONS[curSection].id;
+  let h="";
+  if(id==="event") h=vEvent();
+  if(id==="people") h=vPeople();
+  if(id==="moments") h=vMoments();
+  if(id==="songs") h=vSongs();
+  if(id==="vibe") h=vVibe();
+  if(id==="timeline") h=vTimeline();
+  if(id==="logistics") h=vLogistics();
+  if(id==="review") h=vReview();
+  panelsEl.innerHTML=`<section class="panel active ${id==='review'?'printable':''}">${h}${id!=='review'?navBtns():''}</section>`;
+  updateProgress(); renderSteps();
+}
+
+/* ---------- 1 EVENT ---------- */
+function vEvent(){
+  const types=["Wedding","Corporate Event","Private Party","School Event","Other Celebration"];
+  return `<h2>Your event</h2><p class="sub">The basics first — this is what goes at the top of Jake's run sheet for your night.</p>
+  <div class="field"><label>What are we celebrating?</label>
+    <div class="seg" style="flex-wrap:wrap">${types.map(t=>`<button class="${S.event.type===t?'on':''}" onclick="setP('event.type','${t}');">${t}</button>`).join("")}</div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid g2">
+    ${field(S.event.type==="Wedding"?"Your names (both of you)":"Your name / host names", inp("event.names", S.event.type==="Wedding"?"e.g. Maddy Lane-Kaluski & Dom":"e.g. Alex Smith"))}
+    ${field("Event date", inp("event.date","","date"))}
+    ${field("Email Jake should use", inp("event.email","you@email.com","email"))}
+    ${field("Phone (day-of texts)", inp("event.phone","(613) 555-0123","tel"))}
+    ${field("Venue name", inp("event.venue","e.g. Le Belvédère"))}
+    ${field("Guest count (rough is fine)", inp("event.guestCount","e.g. 120"))}
+    ${field("Package you booked (if you know it)", inp("event.packageName","e.g. Classic Wedding Package"))}
+    ${field("Ceremony location", inp("event.ceremonySame","Same as reception, or where?"))}
+  </div>
+  <div style="height:14px"></div>
+  ${field("Venue address", inp("event.venueAddress","Street, city — for load-in and travel planning"))}
+  <div style="height:14px"></div>
+  ${field("Outdoor elements / rain plan (if any)", ta("event.rainPlan","e.g. Ceremony outside, moves inside the barn if it rains. Tent has sides."))}
+  <p class="callout" style="margin-top:18px">💡 <b>Essential package note:</b> Essential is reception-only. Ceremony music starts with Classic, ceremony + cocktail hour with Premium. Not sure what you booked? Just ask Jake — (613) 837-4488.</p>`;
+}
+
+/* ---------- 2 PEOPLE & MC ---------- */
+function vPeople(){
+  const intros=S.people.intros.map((r,i)=>`
+    <div class="tlrow" style="grid-template-columns:1fr 1fr 34px">
+      <input placeholder="Names — e.g. Sarah & Mike (Best Man + Maid of Honour)" value="${esc(r.names)}" oninput="introSet(${i},'names',this.value)">
+      <input placeholder="Pronunciation / note (optional)" value="${esc(r.note)}" oninput="introSet(${i},'note',this.value)">
+      <button class="iconbtn" title="Remove" onclick="introDel(${i})">🗑</button>
+    </div>`).join("");
+  return `<h2>People, names &amp; your MC</h2><p class="sub">Jake announces your people all night. This is how every name gets said right, in the right order — the #1 thing couples wish they'd filled in.</p>
+  ${field("How do we pronounce the tricky names?<small>Yours, your parents', anyone being announced. Write it like it sounds: 'Herscovitch = hers-KOH-vitch'.</small>", ta("people.pronunciations","One per line helps a lot.",3))}
+  <div style="height:16px"></div>
+  <div class="field"><label>Grand entrance order<small>Who walks in, in what order. Add a row per pair/person — songs for entrances live in Special Moments.</small></label>
+    ${intros}
+    <button class="btn ghost" style="padding:9px 16px;font-size:13.5px" onclick="introAdd()">+ Add person / pair</button>
+  </div>
+  <div style="height:16px"></div>
+  ${field("Speeches & toasts — who, and roughly when?<small>Names + order. Jake will have the mic ready and introduce each person.</small>", ta("people.speeches","e.g. Father of the bride after dinner, then Best Man, then Maid of Honour.",3))}
+  <div style="height:16px"></div>
+  <div class="field"><label>How do you want Jake on the mic?</label>
+    <div class="seg">
+      <button class="${S.people.mcStyle==='hype'?'on':''}" onclick="setP('people.mcStyle','hype');renderPanel()">🎤 Hype — keep energy up</button>
+      <button class="${S.people.mcStyle==='warm'?'on':''}" onclick="setP('people.mcStyle','warm');renderPanel()">😊 Warm & classy</button>
+      <button class="${S.people.mcStyle==='minimal'?'on':''}" onclick="setP('people.mcStyle','minimal');renderPanel()">🤫 Minimal — music talks</button>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  ${field("Announcements Jake should make<small>Last call, late-night snack, shuttle times, sparkler exit, photo booth, guest book…</small>", ta("people.mcNotes","Anything guests need to hear, and roughly when.",3))}
+  <div style="height:14px"></div>
+  ${field("Traditions / special moments we should know about<small>Cultural traditions, surprise performances, a singer in the family, memorial table moment…</small>", ta("people.traditions","",3))}
+  <div style="height:14px"></div>
+  ${field("Sensitive stuff (optional, stays between you and Jake)<small>Divorced parents who shouldn't be seated/announced together, names to avoid, a song tied to a hard memory…</small>", ta("people.noPhoto","",3))}`;
+}
+function introAdd(){ S.people.intros.push({names:"",note:""}); save(); renderPanel(); }
+function introDel(i){ S.people.intros.splice(i,1); if(!S.people.intros.length) S.people.intros=[{names:"",note:""}]; save(); renderPanel(); }
+function introSet(i,k,v){ S.people.intros[i][k]=v; save(); }
+
+/* ---------- 3 MOMENTS ---------- */
+function vMoments(){
+  const list=momentsFor();
+  const cards=list.map(m=>{
+    const v=S.moments[m.id]||{};
+    return `<div class="moment">
+      <h3><span class="ico">${m.ico}</span>${m.name}</h3>
+      <p class="when">${m.when}</p>
+      <div class="row3">
+        <input placeholder="${esc(m.ph)} — song title" value="${esc(v.title||'')}" oninput="momentSet('${m.id}','title',this.value)">
+        <input placeholder="Artist" value="${esc(v.artist||'')}" oninput="momentSet('${m.id}','artist',this.value)">
+      </div>
+      <div style="height:9px"></div>
+      <input placeholder="Specific version / Spotify or YouTube link / start at 0:42… (optional)" value="${esc(v.link||'')}" oninput="momentSet('${m.id}','link',this.value)">
+      <div style="height:9px"></div>
+      <input placeholder="Notes — who's involved, anything Jake should know (optional)" value="${esc(v.notes||'')}" oninput="momentSet('${m.id}','notes',this.value)">
+      ${m.suggestions.length?`<div class="suggest"><span style="font-size:12px;color:var(--mut);align-self:center">Popular picks:</span>${m.suggestions.map(s=>`<button onclick="momentSuggest('${m.id}','${esc(s).replace(/'/g,"\\'")}')">${esc(s)}</button>`).join("")}</div>`:""}
+      <div style="display:flex;gap:18px;flex-wrap:wrap">
+        <label class="mini-check"><input type="checkbox" ${v.surprise?"checked":""} onchange="momentSet('${m.id}','surprise',this.checked)"> Surprise us / Jake's choice</label>
+        <label class="mini-check"><input type="checkbox" ${v.skip?"checked":""} onchange="momentSet('${m.id}','skip',this.checked)"> We're skipping this one</label>
+      </div>
+    </div>`;
+  }).join("");
+  return `<h2>Special moments</h2><p class="sub">Every big moment gets its <i>own</i> song — no more burying your first dance in a notes box. Don't know one? Tap a popular pick, or tick "Surprise us" and Jake will nail it.</p>
+  <p class="callout blue">🎧 Exact version matters. If you fell in love with a specific cover or an acoustic version, paste the link — otherwise Jake plays the best-known version.</p>
+  ${cards}`;
+}
+function momentSet(id,k,v){ if(!S.moments[id]) S.moments[id]={}; S.moments[id][k]=v; save(); }
+function momentSuggest(id, s){
+  const parts=s.split(" — "); const artist=parts.length>1?parts[0]:""; const title=parts.length>1?parts.slice(1).join(" — "):s;
+  if(!S.moments[id]) S.moments[id]={}; S.moments[id].title=title; S.moments[id].artist=artist; save(); renderPanel(); toast("Added to that moment ✓");
+}
+
+/* ---------- 4 SONGS ---------- */
+const BOARD_META={
+  must:{label:"⭐ Must-Play", desc:"The non-negotiables. Jake guarantees these. Sweet spot: 10–20 — at ~3.5 min each, 20 songs is over an hour of your dance floor, so make them count.", cap:25},
+  ifcan:{label:"👍 Play If You Can", desc:"Love them, but the floor comes first. Jake weaves these in when the moment is right.", cap:40},
+  dnp:{label:"🚫 Do Not Play", desc:"Never. Not even if a guest begs. Jake guarantees these stay off — no exceptions.", cap:999}
+};
+function vSongs(){
+  const conf=conflicts();
+  const tabs=Object.keys(BOARD_META).map(b=>`<button class="board-tab ${b==='dnp'?'dnp':''} ${curBoard===b?'active':''}" onclick="boardGo('${b}')"><b>${BOARD_META[b].label}</b><span class="n">${S.boards[b].length} song${S.boards[b].length===1?'':'s'}</span></button>`).join("");
+  const list=S.boards[curBoard];
+  const dnpKeys=new Set(S.boards.dnp.map(s=>songKey(s.title,s.artist)));
+  const rows=list.length? list.map((s,i)=>{
+    const isConf=(curBoard!=="dnp" && dnpKeys.has(songKey(s.title,s.artist)));
+    return `<div class="song ${isConf?'conflict':''}"><span class="idx">${i+1}</span><div class="st"><b>${esc(s.title)}</b>${s.artist?`<span>${esc(s.artist)}</span>`:""}${isConf?`<span style="color:#ffb3ad">⚠ Also on your Do Not Play list — remove it from one of them</span>`:""}</div><button class="iconbtn" title="Remove" onclick="songDel('${curBoard}',${i})">🗑</button></div>`;
+  }).join("") : `<div class="empty">Nothing here yet — add your first song above, paste a whole list, or tap a suggestion below.</div>`;
+  const mins=Math.round(list.length*3.5);
+  return `<h2>Your song lists</h2><p class="sub">Three lists, zero confusion. Add songs one by one, or paste a whole playlist at once.</p>
+  ${conf.length?`<p class="callout red">⚠️ <b>Conflict:</b> ${esc(conf.join(", "))} is on both a play list <i>and</i> your Do Not Play list. Fix it below so Jake knows which one wins.</p>`:""}
+  <div class="board-tabs">${tabs}</div>
+  <p class="hint" style="font-size:13.5px;margin:10px 0 14px">${BOARD_META[curBoard].desc}</p>
+  <div class="grid" style="grid-template-columns:1.2fr 1fr auto;gap:9px" id="addrow">
+    <input id="nsTitle" placeholder="Song title" onkeydown="if(event.key==='Enter')songAdd()">
+    <input id="nsArtist" placeholder="Artist" onkeydown="if(event.key==='Enter')songAdd()">
+    <button class="btn" style="padding:11px 18px" onclick="songAdd()">+ Add</button>
+  </div>
+  <div style="height:16px"></div>
+  <div class="field"><label>📋 Paste a whole list at once<small>Export or copy from Spotify / Apple Music / a notes app. One song per line — "Artist - Song", "Song by Artist", or just titles all work. Duplicates are removed automatically.</small></label>
+    <textarea id="bulk" rows="4" placeholder="Ed Sheeran - Perfect&#10;Uptown Funk by Bruno Mars&#10;Dancing Queen"></textarea>
+    <div style="margin-top:8px"><button class="btn ghost" style="padding:9px 16px;font-size:13.5px" onclick="bulkAdd()">Add all to ${BOARD_META[curBoard].label.replace(/^[^\s]+\s/,'')}</button></div>
+  </div>
+  <div class="field" style="margin-top:16px"><label>Or drop your playlist links</label>
+    <div class="grid g2">
+      <input placeholder="Spotify playlist link" value="${esc(S.playlistLinks.spotify)}" oninput="setP('playlistLinks.spotify',this.value)">
+      <input placeholder="Apple Music playlist link" value="${esc(S.playlistLinks.apple)}" oninput="setP('playlistLinks.apple',this.value)">
+      <input placeholder="YouTube playlist link" value="${esc(S.playlistLinks.youtube)}" oninput="setP('playlistLinks.youtube',this.value)">
+      <input placeholder="Any other link (Tidal, a shared note…)" value="${esc(S.playlistLinks.other)}" oninput="setP('playlistLinks.other',this.value)">
+    </div>
+    <div class="hint">Make sure Spotify/Apple playlists are set to <b>public</b> or shared with a link, or Jake can't open them.</div>
+  </div>
+  <div class="songlist">${rows}</div>
+  <div class="meter">${curBoard!=="dnp" && list.length?`⏱ That's about <b>${mins} minutes</b> of music on this list. `:''}${curBoard==="must" && list.length>BOARD_META.must.cap?`<span style="color:#ffb3ad">Over ${BOARD_META.must.cap} must-plays gets hard to guarantee in one night — move the extras to Play If You Can.</span>`:''}</div>
+  <div class="suggest" style="margin-top:14px"><span style="font-size:12px;color:var(--mut);align-self:center">Need ideas? Tap to add:</span>${BOARD_SUGGESTIONS[curBoard].map(s=>`<button onclick="songSuggest('${esc(s).replace(/'/g,"\\'")}')">${esc(s)}</button>`).join("")}</div>`;
+}
+function boardGo(b){ curBoard=b; renderPanel(); }
+function addSongTo(board, title, artist){
+  title=(title||"").trim(); if(!title) return false;
+  artist=(artist||"").trim();
+  const k=songKey(title,artist);
+  if(S.boards[board].some(s=>songKey(s.title,s.artist)===k)) return false;
+  S.boards[board].push({title, artist}); return true;
+}
+function songAdd(){
+  const t=document.getElementById("nsTitle"), a=document.getElementById("nsArtist");
+  if(!t.value.trim()){ toast("Type a song title first"); return; }
+  if(addSongTo(curBoard, t.value, a.value)){ save(); renderPanel(); toast("Added ✓"); }
+  else { toast("Already on this list"); }
+}
+function songSuggest(s){
+  const parts=s.split(" — "); const artist=parts.length>1?parts[0]:""; const title=parts.length>1?parts.slice(1).join(" — "):s;
+  if(addSongTo(curBoard,title,artist)){ save(); renderPanel(); toast("Added ✓"); } else toast("Already on this list");
+}
+function bulkAdd(){
+  const taEl=document.getElementById("bulk"); const songs=parseSongLines(taEl.value);
+  if(!songs.length){ toast("Nothing to add — paste some songs first"); return; }
+  let added=0; songs.forEach(s=>{ if(addSongTo(curBoard,s.title,s.artist)) added++; });
+  save(); renderPanel();
+  toast(added? `Added ${added} song${added===1?'':'s'} ✓` : "All of those were already on the list");
+}
+function songDel(board,i){ S.boards[board].splice(i,1); save(); renderPanel(); }
+
+/* ---------- 5 VIBE ---------- */
+function vVibe(){
+  const genreChips=GENRES.map(g=>{
+    const st=S.vibe.genres[g]||"";
+    return `<button class="chip ${st==='love'?'love':st==='never'?'never':''}" onclick="genreCycle('${esc(g).replace(/'/g,"\\'")}')">${esc(g)}${st?`<span class="st">${st==='love'?'♥ Love':'✕ Never'}</span>`:""}</button>`;
+  }).join("");
+  const decadeChips=DECADES.map(d=>`<button class="chip ${S.vibe.decades.includes(d)?'pick':''}" onclick="decadeToggle('${d}')">${d}</button>`).join("");
+  return `<h2>Your vibe</h2><p class="sub">Lists tell Jake <i>what</i> to play. This tells him <i>how the night should feel</i> — so the 200 songs he picks for you land right. Tap a genre once for ♥ Love it, twice for ✕ Never, once more to clear.</p>
+  <div class="field"><label>Genres — love it / never play it</label><div class="chips">${genreChips}</div></div>
+  <div style="height:16px"></div>
+  <div class="field"><label>Your eras (pick all that feel like you)</label><div class="chips">${decadeChips}</div></div>
+  <div style="height:10px"></div>
+  <div class="togglerow"><div><div class="t">Clean lyrics only</div><div class="d">Radio edits all night — good call with kids / grandparents / work events</div></div>
+    <label class="switch"><input type="checkbox" ${S.vibe.cleanOnly?"checked":""} onchange="setP('vibe.cleanOnly',this.checked)"><span class="slider"></span></label></div>
+  <div style="height:14px"></div>
+  <div class="field"><label>Guest requests on the night?</label>
+    <div class="seg">
+      <button class="${S.vibe.guestRequests==='yes'?'on':''}" onclick="setP('vibe.guestRequests','yes');renderPanel()">Yes — guests can ask</button>
+      <button class="${S.vibe.guestRequests==='dj'?'on':''}" onclick="setP('vibe.guestRequests','dj');renderPanel()">Jake decides</button>
+      <button class="${S.vibe.guestRequests==='no'?'on':''}" onclick="setP('vibe.guestRequests','no');renderPanel()">No requests</button>
+    </div>
+    <div class="hint">“Jake decides” is what most couples pick — guests feel heard, your do-not-play list still wins.</div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="field"><label>Dance-floor energy</label>
+    <div class="seg">
+      ${[1,2,3,4,5].map(n=>`<button class="${S.vibe.energy===n?'on':''}" onclick="setP('vibe.energy',${n});renderPanel()">${["","Chill","","Balanced","","Full send"][n]}</button>`).join("")}
+    </div>
+    <div class="hint">1 = chill background night · 3 = balanced · 5 = full-send party, packed floor all night</div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid g2">
+    ${field("Cocktail hour vibe", inp("vibe.cocktailVibe","e.g. Jazz + acoustic covers, upbeat but chat-friendly"))}
+    ${field("Dinner vibe", inp("vibe.dinnerVibe","e.g. Soft pop + oldies, low volume"))}
+    ${field("Slow songs / slow sets?", inp("vibe.slowSets","e.g. A couple of slow sets is perfect / none please"))}
+    ${field("Volume notes (venue limits, neighbours, sensory needs…)", inp("vibe.volumeNote","e.g. Venue has a 85dB limit after 11pm"))}
+  </div>
+  <div style="height:14px"></div>
+  ${field("Anything else about requests?<small>e.g. 'If Uncle Ron asks for his song, please play it — it matters to him.'</small>", ta("vibe.requestsNote","",2))}`;
+}
+function genreCycle(g){
+  const cur=S.vibe.genres[g]||"";
+  if(!cur) S.vibe.genres[g]="love"; else if(cur==="love") S.vibe.genres[g]="never"; else delete S.vibe.genres[g];
+  save(); renderPanel();
+}
+function decadeToggle(d){
+  const i=S.vibe.decades.indexOf(d); if(i>=0) S.vibe.decades.splice(i,1); else S.vibe.decades.push(d);
+  save(); renderPanel();
+}
+
+/* ---------- 6 TIMELINE ---------- */
+function vTimeline(){
+  const rows=S.timeline.map((r,i)=>`
+    <div class="tlrow">
+      <input placeholder="6:00 PM" value="${esc(r.time)}" oninput="tlSet(${i},'time',this.value)">
+      <div><input placeholder="What's happening" value="${esc(r.title)}" oninput="tlSet(${i},'title',this.value)">
+      <input placeholder="Details (optional)" value="${esc(r.details)}" style="margin-top:6px" oninput="tlSet(${i},'details',this.value)"></div>
+      <button class="iconbtn" title="Remove" onclick="tlDel(${i})">🗑</button>
+    </div>`).join("");
+  return `<h2>Your timeline</h2><p class="sub">Jake runs your night off this. Even a rough version beats a perfect one that never gets sent — times can shift, order is what matters.</p>
+  ${S.timeline.length===0?`<p class="callout">📋 Starting from zero? <button class="btn" style="padding:8px 14px;font-size:13.5px;margin-left:8px" onclick="tlTemplate()">Load the classic wedding timeline</button><br><span style="color:var(--mut);font-size:13px">A proven run order you can just edit — way faster than a blank page.</span></p>`:""}
+  ${rows}
+  <button class="btn ghost" style="padding:9px 16px;font-size:13.5px" onclick="tlAdd()">+ Add a moment</button>
+  <p class="hint" style="margin-top:14px">Include: ceremony, cocktails, dinner, speeches, first dance, when the bar closes, late-night snack, last song, and what time the venue kicks everyone out.</p>`;
+}
+function tlAdd(){ S.timeline.push({time:"",title:"",details:""}); save(); renderPanel(); }
+function tlDel(i){ S.timeline.splice(i,1); save(); renderPanel(); }
+function tlSet(i,k,v){ S.timeline[i][k]=v; save(); }
+function tlTemplate(){ S.timeline=JSON.parse(JSON.stringify(WEDDING_TIMELINE_TEMPLATE)); save(); renderPanel(); toast("Template loaded — make it yours ✓"); }
+
+/* ---------- 7 LOGISTICS ---------- */
+const ADDONS=["Cold Sparklers","Dry Ice / Dancing on Clouds","Uplighting","Karaoke","Photo Booth","Extra Hour","Ceremony Sound","Cocktail Hour Music","Custom Monogram","Early Setup"];
+function vLogistics(){
+  return `<h2>Logistics — the boring stuff that saves the day</h2><p class="sub">Five minutes here prevents every day-of scramble Jake has ever seen.</p>
+  <div class="grid g2">
+    ${field("What time can Jake load in / set up?", inp("logistics.loadIn","e.g. Anytime after 1 PM"))}
+    ${field("DJ should be set up & playing by", inp("logistics.djArrival","e.g. 3:30 PM (guests arrive 3:45)"))}
+    ${field("Day-of contact (not you, if possible)<small>Best man, planner, sibling — someone with a phone on loud.</small>", inp("logistics.dayContact","Name + number"))}
+    ${field("Planner / coordinator (if you have one)", inp("logistics.coordinator","Name + contact"))}
+    ${field("Photographer / videographer", inp("logistics.photographer","Name — Jake coordinates moments with them"))}
+    ${field("Other vendors Jake should know", inp("logistics.otherVendors","Caterer, venue contact, officiant…"))}
+  </div>
+  <div style="height:14px"></div>
+  ${field("Power & setup notes<small>Where the DJ booth/table goes, outdoor power, anything the venue told you. Not sure? Write 'not sure' — Jake will confirm with the venue.</small>", ta("logistics.power","",2))}
+  <div style="height:12px"></div>
+  ${field("Parking / load-in notes", ta("logistics.parking","e.g. Loading dock at the back, elevator to the hall.",2))}
+  <div style="height:16px"></div>
+  <div class="field"><label>Add-ons on your booking (tick what's included)</label>
+    <div class="chips">${ADDONS.map(a=>`<button class="chip ${S.logistics.addons.includes(a)?'pick':''}" onclick="addonToggle('${esc(a).replace(/'/g,"\\'")}')">${esc(a)}</button>`).join("")}</div>
+    <div class="hint">Cold sparklers and dry ice need venue permission + timing in the timeline — Jake confirms both before the day.</div>
+  </div>
+  <div style="height:16px"></div>
+  ${field("Anything else Jake should know?<small>Surprises being planned for you, a deployment toast, accessibility needs — anything.</small>", ta("logistics.finalNotes","",4))}
+  <label class="mini-check" style="font-size:14.5px;color:var(--txt)"><input type="checkbox" ${S.logistics.deadlineOk?"checked":""} onchange="setP('logistics.deadlineOk',this.checked)"> Got it — final version of this planner is due <b>&nbsp;14 days before the event&nbsp;</b> so Jake can prep properly.</label>`;
+}
+function addonToggle(a){
+  const i=S.logistics.addons.indexOf(a); if(i>=0) S.logistics.addons.splice(i,1); else S.logistics.addons.push(a);
+  save(); renderPanel();
+}
+
+/* ---------- 8 REVIEW / RUN SHEET ---------- */
+function fmtDate(d){
+  if(!d) return "";
+  const dt=new Date(d+"T12:00:00"); return isNaN(dt)? d : dt.toLocaleDateString("en-CA",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+}
+function buildRunSheet(){
+  const L=[]; const push=(s)=>L.push(s);
+  push("════════════════════════════════════════════════════");
+  push("  BEATMASTER DJ — EVENT RUN SHEET");
+  push("════════════════════════════════════════════════════");
+  push(`Event:      ${S.event.type||"—"}`);
+  push(`Names:      ${S.event.names||"—"}`);
+  if(S.event.date) push(`Date:       ${fmtDate(S.event.date)}`);
+  push(`Venue:      ${S.event.venue||"—"}${S.event.venueAddress? " — "+S.event.venueAddress:""}`);
+  if(S.event.guestCount) push(`Guests:     ${S.event.guestCount}`);
+  if(S.event.packageName) push(`Package:    ${S.event.packageName}`);
+  push(`Contact:    ${S.event.email||"—"}${S.event.phone? " · "+S.event.phone:""}`);
+  if(S.event.ceremonySame) push(`Ceremony:   ${S.event.ceremonySame}`);
+  if(S.event.rainPlan) push(`Rain plan:  ${S.event.rainPlan}`);
+  const activeMoments=momentsFor().filter(m=>{const v=S.moments[m.id]; return v&&(v.title?.trim()||v.skip||v.surprise);});
+  if(activeMoments.length){
+    push(""); push("── SPECIAL MOMENTS ──────────────────────────────");
+    activeMoments.forEach(m=>{ const v=S.moments[m.id];
+      if(v.skip){ push(`• ${m.name}: SKIPPED`); return; }
+      if(v.surprise && !v.title?.trim()){ push(`• ${m.name}: JAKE'S CHOICE (surprise us)`); return; }
+      push(`• ${m.name}: ${v.title}${v.artist? " — "+v.artist:""}`);
+      if(v.link) push(`    Version/link: ${v.link}`);
+      if(v.notes) push(`    Notes: ${v.notes}`);
+    });
+  }
+  const boardLine=(key,label)=>{
+    if(!S.boards[key].length) return;
+    push(""); push(`── ${label} (${S.boards[key].length}) ──────────────────────────────`.slice(0,52));
+    S.boards[key].forEach((s,i)=>push(`${String(i+1).padStart(2)}. ${s.title}${s.artist? " — "+s.artist:""}`));
+  };
+  boardLine("must","⭐ MUST-PLAY");
+  boardLine("ifcan","👍 PLAY IF YOU CAN");
+  boardLine("dnp","🚫 DO NOT PLAY");
+  const links=Object.entries(S.playlistLinks).filter(([,v])=>v?.trim());
+  if(links.length){ push(""); push("── PLAYLIST LINKS ───────────────────────────────"); links.forEach(([k,v])=>push(`• ${k}: ${v}`)); }
+  const loved=Object.keys(S.vibe.genres).filter(g=>S.vibe.genres[g]==="love");
+  const never=Object.keys(S.vibe.genres).filter(g=>S.vibe.genres[g]==="never");
+  if(loved.length||never.length||S.vibe.decades.length){
+    push(""); push("── VIBE ─────────────────────────────────────────");
+    if(loved.length) push(`Love: ${loved.join(", ")}`);
+    if(never.length) push(`Never: ${never.join(", ")}`);
+    if(S.vibe.decades.length) push(`Eras: ${S.vibe.decades.join(", ")}`);
+    push(`Clean lyrics only: ${S.vibe.cleanOnly?"YES":"No"}`);
+    push(`Guest requests: ${{yes:"Yes, guests can ask",dj:"DJ decides",no:"No requests"}[S.vibe.guestRequests]}`);
+    push(`Energy (1-5): ${S.vibe.energy}`);
+    if(S.vibe.cocktailVibe) push(`Cocktail vibe: ${S.vibe.cocktailVibe}`);
+    if(S.vibe.dinnerVibe) push(`Dinner vibe: ${S.vibe.dinnerVibe}`);
+    if(S.vibe.slowSets) push(`Slow sets: ${S.vibe.slowSets}`);
+    if(S.vibe.volumeNote) push(`Volume: ${S.vibe.volumeNote}`);
+    if(S.vibe.requestsNote) push(`Requests note: ${S.vibe.requestsNote}`);
+  }
+  if(S.timeline.length){
+    push(""); push("── TIMELINE ─────────────────────────────────────");
+    S.timeline.forEach(r=>{ if(r.title||r.time) push(`${(r.time||"—").padEnd(9)} ${r.title}${r.details? " — "+r.details:""}`); });
+  }
+  if(S.people.pronunciations||S.people.intros.some(r=>r.names.trim())||S.people.speeches){
+    push(""); push("── PEOPLE & MC ──────────────────────────────────");
+    if(S.people.pronunciations) push(`Pronunciations:\n${S.people.pronunciations}`);
+    const intros=S.people.intros.filter(r=>r.names.trim());
+    if(intros.length){ push("Entrance order:"); intros.forEach((r,i)=>push(`  ${i+1}. ${r.names}${r.note? " ("+r.note+")":""}`)); }
+    push(`MC style: ${{hype:"Hype — keep energy up",warm:"Warm & classy",minimal:"Minimal"}[S.people.mcStyle]}`);
+    if(S.people.speeches) push(`Speeches: ${S.people.speeches}`);
+    if(S.people.mcNotes) push(`Announcements: ${S.people.mcNotes}`);
+    if(S.people.traditions) push(`Traditions: ${S.people.traditions}`);
+    if(S.people.noPhoto) push(`Sensitive: ${S.people.noPhoto}`);
+  }
+  const lg=S.logistics;
+  if(lg.loadIn||lg.dayContact||lg.finalNotes||lg.addons.length){
+    push(""); push("── LOGISTICS ────────────────────────────────────");
+    if(lg.loadIn) push(`Load-in: ${lg.loadIn}`);
+    if(lg.djArrival) push(`Set up & playing by: ${lg.djArrival}`);
+    if(lg.dayContact) push(`Day-of contact: ${lg.dayContact}`);
+    if(lg.coordinator) push(`Planner/coordinator: ${lg.coordinator}`);
+    if(lg.photographer) push(`Photo/video: ${lg.photographer}`);
+    if(lg.otherVendors) push(`Other vendors: ${lg.otherVendors}`);
+    if(lg.power) push(`Power/setup: ${lg.power}`);
+    if(lg.parking) push(`Parking/load-in: ${lg.parking}`);
+    if(lg.addons.length) push(`Add-ons: ${lg.addons.join(", ")}`);
+    if(lg.finalNotes) push(`Final notes: ${lg.finalNotes}`);
+  }
+  push(""); push("════════════════════════════════════════════════════");
+  return L.join("\n");
+}
+function missingEssentials(){
+  const m=[];
+  if(!S.event.names) m.push("Your names (Your Event)");
+  if(!S.event.email) m.push("Your email (Your Event)");
+  if(!S.event.date) m.push("Event date (Your Event)");
+  if(!S.event.venue) m.push("Venue (Your Event)");
+  const fd=S.moments["first_dance"];
+  if(S.event.type==="Wedding" && !(fd&&(fd.title?.trim()||fd.skip||fd.surprise))) m.push("First dance song — or tick 'Surprise us' / 'Skipping' (Special Moments)");
+  if(S.boards.must.length===0 && S.boards.ifcan.length===0) m.push("At least a few songs on Must-Play or Play If You Can (Song Lists)");
+  if(S.timeline.length===0) m.push("A rough timeline — the template takes 2 minutes (Timeline)");
+  if(!S.logistics.dayContact) m.push("A day-of contact who isn't you (Logistics)");
+  return m;
+}
+function vReview(){
+  const sheet=buildRunSheet();
+  const miss=missingEssentials();
+  const conf=conflicts();
+  const total=S.boards.must.length+S.boards.ifcan.length+S.boards.dnp.length;
+  return `<h2>Review &amp; send</h2><p class="sub">This is exactly what lands in Jake's hands — his run sheet for your night. Check it, fix anything, then send it his way.</p>
+  <div class="review-sec"><h3>✅ Your night at a glance</h3>
+    <p style="margin:0;font-size:14.5px">${esc(S.event.names||"Your event")}${S.event.date? " · "+esc(fmtDate(S.event.date)):""}${S.event.venue? " · "+esc(S.event.venue):""}<br>
+    <span style="color:var(--mut)">${total} songs listed · ${momentsFor().filter(m=>{const v=S.moments[m.id]; return v&&(v.title?.trim()||v.skip||v.surprise);}).length} of ${momentsFor().length} special moments covered · ${S.timeline.length} timeline items · ${overallPct()}% complete</span></p>
+    ${miss.length? miss.map(m=>`<p class="missing">○ Still missing: ${esc(m)}</p>`).join("") : `<p class="okline">✓ All the essentials are in — nice work.</p>`}
+    ${conf.length?`<p class="missing">⚠ Conflict to fix in Song Lists: ${esc(conf.join(", "))} is on both a play list and Do Not Play.</p>`:""}
+  </div>
+  <div class="field"><label>Jake's run sheet (auto-built from everything you entered)</label>
+  <pre class="runsheet" id="runsheet">${esc(sheet)}</pre></div>
+  <div class="actions">
+    <button class="btn big" onclick="copySheet(this)">📋 Copy run sheet</button>
+    <button class="btn big blue" onclick="emailSheet()">✉️ Copy + email it to Jake</button>
+    <button class="btn ghost" onclick="downloadSheet()">⬇ Download .txt</button>
+    <button class="btn ghost" onclick="window.print()">🖨 Print / Save as PDF</button>
+  </div>
+  <p class="callout" style="margin-top:18px">📬 <b>How sending works:</b> tap <b>Copy + email it to Jake</b> — your run sheet is copied and an email to hersky.ott@gmail.com opens with the subject filled in. Just paste (long-press / Ctrl+V) and hit send. Prefer text? Copy it and send it to <b>(613) 837-4488</b>. Jake confirms back once he's reviewed it.</p>
+  <p class="hint">Changed your mind on something after sending? Just update this page and send a fresh copy — the newest one always wins. Final version is due 14 days before your event.</p>
+  <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:16px">
+    <button class="btn ghost" style="color:#ffb3ad;border-color:rgba(228,87,77,.4)" onclick="resetAll()">Start over (erase everything on this device)</button>
+  </div>`;
+}
+function markSent(){
+  S.submittedAt=new Date().toISOString(); save();
+}
+function copySheet(btn){
+  const sheet=buildRunSheet();
+  const done=()=>{ toast("Run sheet copied ✓"); markSent(); };
+  if(navigator.clipboard?.writeText){ navigator.clipboard.writeText(sheet).then(done).catch(()=>{ fallbackCopy(sheet); done(); }); }
+  else { fallbackCopy(sheet); done(); }
+}
+function fallbackCopy(text){
+  const taEl=document.createElement("textarea"); taEl.value=text; document.body.appendChild(taEl); taEl.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  taEl.remove();
+}
+function emailSheet(){
+  const sheet=buildRunSheet();
+  if(navigator.clipboard?.writeText){ navigator.clipboard.writeText(sheet).catch(()=>{}); }
+  else fallbackCopy(sheet);
+  markSent();
+  const subject=encodeURIComponent(`Music Planner — ${S.event.names||"Our Event"}${S.event.date? " — "+fmtDate(S.event.date):""}`);
+  const body=encodeURIComponent("Hi Jake! Here's our completed Music Planner & Questionnaire.\n\n[Your run sheet is on your clipboard — paste it right below this line]\n\n— — —\n");
+  window.location.href=`mailto:hersky.ott@gmail.com?subject=${subject}&body=${body}`;
+  toast("Copied ✓ — paste it into the email");
+}
+function downloadSheet(){
+  const blob=new Blob([buildRunSheet()],{type:"text/plain"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`music-planner-${(S.event.names||"event").replace(/[^a-z0-9]+/gi,"-").toLowerCase()}.txt`;
+  a.click(); URL.revokeObjectURL(a.href); markSent(); toast("Downloaded ✓");
+}
+function resetAll(){
+  if(!confirm("Erase everything you've entered on this device and start fresh?")) return;
+  localStorage.removeItem(LS_KEY); S=blankState(); curSection=0; curBoard="must"; renderPanel(); toast("Fresh start ✓");
+}
+
+/* ---------- init ---------- */
+renderSteps();
+renderPanel();
+if(S.timeline.length===0 && S.event.type==="Wedding" && !localStorage.getItem(LS_KEY)){ /* first visit stays blank by design — template is one tap in Timeline */ }
+</script>
+</body>
+</html>
