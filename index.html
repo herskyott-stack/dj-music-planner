@@ -85,6 +85,7 @@ section.panel .sub{color:var(--mut);margin:0 0 20px;font-size:15px}
 .switch input:checked + .slider{background:var(--gold)}
 .switch input:checked + .slider:before{transform:translateX(23px)}
 select.seg{appearance:none}
+input[type=range]{accent-color:var(--gold);padding:0;height:28px}
 /* segmented */
 .seg{display:flex;background:#0e0e14;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .seg button{flex:1;background:transparent;border:none;color:var(--mut);padding:11px 6px;font-weight:700;font-size:13.5px}
@@ -215,7 +216,10 @@ const MOMENTS_WEDDING = [
   {id:"bouquet", ico:"💐", name:"Bouquet toss", when:"Single ladies (and anyone who wants in) to the floor", ph:"Hype song", suggestions:["Beyoncé — Single Ladies","Cyndi Lauper — Girls Just Want to Have Fun"]},
   {id:"garter", ico:"🎩", name:"Garter toss", when:"The garter toss moment (skip it if it's not your thing)", ph:"Fun song — or mark 'skip'", suggestions:["Queen — Another One Bites the Dust","Def Leppard — Pour Some Sugar on Me"]},
   {id:"last_dance", ico:"🌙", name:"Last dance of the night", when:"The final song everyone remembers", ph:"Your closer", suggestions:["Semisonic — Closing Time","Queen — Don't Stop Me Now","Journey — Don't Stop Believin'"]},
-  {id:"private_last", ico:"🤫", name:"Private last dance (optional)", when:"Just the two of you, empty room, after guests step out", ph:"One last song, just yours", suggestions:[]}
+  {id:"party_starter", ico:"🔥", name:"Party starter — first dance-floor song", when:"The song that opens the dance floor and sets the tone for the party", ph:"High-energy opener", suggestions:["Bruno Mars — Uptown Funk","Black Eyed Peas — I Gotta Feeling"]},
+  {id:"anniversary_dance", ico:"💞", name:"Anniversary dance (optional)", when:"All married couples dance; longest-married couple ends up on the floor — lovely moment", ph:"A classic slow song", suggestions:["Frank Sinatra — The Way You Look Tonight","Ben E. King — Stand by Me"]},
+  {id:"private_last", ico:"🤫", name:"Private last dance (optional)", when:"Just the two of you, empty room, after guests step out", ph:"One last song, just yours", suggestions:[]},
+  {id:"send_off", ico:"🎆", name:"Send-off / exit", when:"Sparkler exit, last-photo moment, or the goodbye outside", ph:"Exit song", suggestions:["Queen — Don't Stop Me Now","Semisonic — Closing Time"]}
 ];
 const MOMENTS_PARTY = [
   {id:"arrival", ico:"🌿", name:"Arrival / background", when:"As guests arrive and settle in", ph:"Style or a few songs", suggestions:[]},
@@ -227,6 +231,7 @@ const MOMENTS_PARTY = [
 const BOARD_SUGGESTIONS = {
   must: ["Bruno Mars — Uptown Funk","ABBA — Dancing Queen","Whitney Houston — I Wanna Dance with Somebody","Mark Ronson — Uptown Funk","Lizzo — About Damn Time","Dua Lipa — Levitating","Earth, Wind & Fire — September","Shania Twain — Man! I Feel Like a Woman"],
   ifcan: ["Taylor Swift — Love Story","Pitbull — Fireball","Flo Rida — Good Feeling","Walk the Moon — Shut Up and Dance","Carly Rae Jepsen — Call Me Maybe","One Direction — What Makes You Beautiful"],
+  crowd: ["Mr. Brightside — The Killers","Shania Twain — Man! I Feel Like a Woman","Neil Diamond — Sweet Caroline","Backstreet Boys — Everybody (Backstreet's Back)","Spice Girls — Wannabe","Bon Jovi — Livin' on a Prayer"],
   dnp: ["The Chicken Dance","Macarena","YMCA","Cotton Eye Joe","Ed Sheeran — Shape of You","Pharrell — Happy","Any line dances","Any country"]
 };
 
@@ -250,9 +255,9 @@ function blankState(){
     event:{type:"Wedding", names:"", partner2:"", email:"", phone:"", date:"", guestCount:"", packageName:"", venue:"", venueAddress:"", ceremonySame:"", rainPlan:""},
     people:{pronunciations:"", intros:[{names:"",note:""}], speeches:"", mcStyle:"hype", mcNotes:"", traditions:"", noPhoto:""},
     moments:{},
-    boards:{must:[], ifcan:[], dnp:[]},
+    boards:{must:[], ifcan:[], crowd:[], dnp:[]},
     playlistLinks:{spotify:"", apple:"", youtube:"", other:""},
-    vibe:{genres:{}, decades:[], cleanOnly:false, guestRequests:"dj", requestsNote:"", dinnerVibe:"", cocktailVibe:"", energy:3, volumeNote:"", slowSets:""},
+    vibe:{genres:{}, decades:[], cleanOnly:false, guestRequests:"dj", requestsNote:"", dinnerVibe:"", cocktailVibe:"", ceremonyVibe:"", lateNightVibe:"", energy:3, volumeNote:"", slowSets:"", quiz:{howMet:"", ourSong:"", threeWords:"", mustMoment:"", biggerDancer:"", guestEnergy:""}, moods:{romanticParty:50, formalCasual:50, lowkeyHype:50}},
     timeline:[],
     logistics:{loadIn:"", djArrival:"", dayContact:"", coordinator:"", photographer:"", otherVendors:"", power:"", parking:"", addons:[], finalNotes:"", deadlineOk:false},
     submittedAt:""
@@ -262,7 +267,7 @@ MOMENTS_WEDDING.concat(MOMENTS_PARTY).forEach(m=>{});
 let S = blankState();
 try{
   const raw = localStorage.getItem(LS_KEY);
-  if(raw){ const parsed = JSON.parse(raw); if(parsed && typeof parsed==="object"){ S = Object.assign(blankState(), parsed); } }
+  if(raw){ const parsed = JSON.parse(raw); if(parsed && typeof parsed==="object"){ const b=blankState(); S = Object.assign(b, parsed); S.vibe=Object.assign(b.vibe, parsed.vibe||{}); S.vibe.quiz=Object.assign(b.vibe.quiz,(parsed.vibe||{}).quiz||{}); S.vibe.moods=Object.assign(b.vibe.moods,(parsed.vibe||{}).moods||{}); S.boards=Object.assign(b.boards, parsed.boards||{}); } }
 }catch(e){}
 
 let curSection = 0, curBoard = "must";
@@ -320,7 +325,7 @@ function sectionDone(i){
   if(id==="event") return !!(S.event.names && S.event.email && S.event.date);
   if(id==="people") return !!(S.people.pronunciations || S.people.intros.some(r=>r.names.trim()) || S.people.speeches);
   if(id==="moments") return momentsFor().some(m=>{ const v=S.moments[m.id]; return v && (v.title?.trim() || v.skip || v.surprise); });
-  if(id==="songs") return (S.boards.must.length+S.boards.ifcan.length+S.boards.dnp.length)>0;
+  if(id==="songs") return (S.boards.must.length+S.boards.ifcan.length+S.boards.crowd.length+S.boards.dnp.length)>0;
   if(id==="vibe") return Object.keys(S.vibe.genres).length>0 || S.vibe.decades.length>0;
   if(id==="timeline") return S.timeline.length>0;
   if(id==="logistics") return !!(S.logistics.dayContact || S.logistics.loadIn || S.logistics.finalNotes);
@@ -344,7 +349,7 @@ function updateProgress(){
 }
 function conflicts(){
   const map={}; const out=[];
-  ["must","ifcan"].forEach(b=>{ S.boards[b].forEach(s=>{ map[songKey(s.title,s.artist)]=b; }); });
+  ["must","ifcan","crowd"].forEach(b=>{ S.boards[b].forEach(s=>{ map[songKey(s.title,s.artist)]=b; }); });
   S.boards.dnp.forEach(s=>{ const k=songKey(s.title,s.artist); if(map[k]) out.push(s.title); });
   return out;
 }
@@ -492,6 +497,7 @@ function momentSuggest(id, s){
 const BOARD_META={
   must:{label:"⭐ Must-Play", desc:"The non-negotiables. Jake guarantees these. Sweet spot: 10–20 — at ~3.5 min each, 20 songs is over an hour of your dance floor, so make them count.", cap:25},
   ifcan:{label:"👍 Play If You Can", desc:"Love them, but the floor comes first. Jake weaves these in when the moment is right.", cap:40},
+  crowd:{label:"🎉 Crowd Favourites", desc:"The songs YOUR people lose their minds to — the ones only you know about your crowd. Gold for Jake.", cap:40},
   dnp:{label:"🚫 Do Not Play", desc:"Never. Not even if a guest begs. Jake guarantees these stay off — no exceptions.", cap:999}
 };
 function vSongs(){
@@ -565,7 +571,25 @@ function vVibe(){
     return `<button class="chip ${st==='love'?'love':st==='never'?'never':''}" onclick="genreCycle('${esc(g).replace(/'/g,"\\'")}')">${esc(g)}${st?`<span class="st">${st==='love'?'♥ Love':'✕ Never'}</span>`:""}</button>`;
   }).join("");
   const decadeChips=DECADES.map(d=>`<button class="chip ${S.vibe.decades.includes(d)?'pick':''}" onclick="decadeToggle('${d}')">${d}</button>`).join("");
+  const q=S.vibe.quiz, md=S.vibe.moods;
   return `<h2>Your vibe</h2><p class="sub">Lists tell Jake <i>what</i> to play. This tells him <i>how the night should feel</i> — so the 200 songs he picks for you land right. Tap a genre once for ♥ Love it, twice for ✕ Never, once more to clear.</p>
+  <div class="field"><label>First — the fun stuff (your story in 60 seconds)</label>
+    <div class="grid g2">
+      <div class="field"><label style="font-weight:500">How did you two meet?</label><input value="${esc(q.howMet)}" placeholder="The short, good version" oninput="setP('vibe.quiz.howMet',this.value)"></div>
+      <div class="field"><label style="font-weight:500">"Our song" is…</label><input value="${esc(q.ourSong)}" placeholder="Title — Artist" oninput="setP('vibe.quiz.ourSong',this.value)"></div>
+      <div class="field"><label style="font-weight:500">Three words that describe you two</label><input value="${esc(q.threeWords)}" placeholder="e.g. Goofy, loyal, dance-floor-first" oninput="setP('vibe.quiz.threeWords',this.value)"></div>
+      <div class="field"><label style="font-weight:500">One moment you MUST have that night</label><input value="${esc(q.mustMoment)}" placeholder="e.g. Everyone on the floor for our song" oninput="setP('vibe.quiz.mustMoment',this.value)"></div>
+      <div class="field"><label style="font-weight:500">Who's the bigger dancer?</label><input value="${esc(q.biggerDancer)}" placeholder="Be honest — Jake will know by 9pm anyway" oninput="setP('vibe.quiz.biggerDancer',this.value)"></div>
+      <div class="field"><label style="font-weight:500">Your guests' energy in one line</label><input value="${esc(q.guestEnergy)}" placeholder="e.g. Starts shy, ends feral" oninput="setP('vibe.quiz.guestEnergy',this.value)"></div>
+    </div>
+  </div>
+  <div style="height:16px"></div>
+  <div class="field"><label>Where's your night on these sliders?</label>
+    ${[["romanticParty","💕 Romantic","🔥 Party"],["formalCasual","🎩 Formal","😎 Casual"],["lowkeyHype","🌙 Lowkey","🚀 Hype"]].map(([k,a,b])=>`
+    <div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--mut)"><span>${a}</span><span>${b}</span></div>
+    <input type="range" min="0" max="100" value="${md[k]}" oninput="moodSet('${k}',this.value)"></div>`).join("")}
+  </div>
+  <div style="height:8px"></div>
   <div class="field"><label>Genres — love it / never play it</label><div class="chips">${genreChips}</div></div>
   <div style="height:16px"></div>
   <div class="field"><label>Your eras (pick all that feel like you)</label><div class="chips">${decadeChips}</div></div>
@@ -582,16 +606,11 @@ function vVibe(){
     <div class="hint">“Jake decides” is what most couples pick — guests feel heard, your do-not-play list still wins.</div>
   </div>
   <div style="height:14px"></div>
-  <div class="field"><label>Dance-floor energy</label>
-    <div class="seg">
-      ${[1,2,3,4,5].map(n=>`<button class="${S.vibe.energy===n?'on':''}" onclick="setP('vibe.energy',${n});renderPanel()">${n}${n===1?" · Chill":n===3?" · Balanced":n===5?" · Full send":""}</button>`).join("")}
-    </div>
-    <div class="hint">1 = chill background night · 3 = balanced · 5 = full-send party, packed floor all night</div>
-  </div>
-  <div style="height:14px"></div>
   <div class="grid g2">
+    ${field("Ceremony vibe", inp("vibe.ceremonyVibe","e.g. Romantic strings, nothing cheesy"))}
     ${field("Cocktail hour vibe", inp("vibe.cocktailVibe","e.g. Jazz + acoustic covers, upbeat but chat-friendly"))}
     ${field("Dinner vibe", inp("vibe.dinnerVibe","e.g. Soft pop + oldies, low volume"))}
+    ${field("Late-night vibe", inp("vibe.lateNightVibe","e.g. 2000s throwbacks + EDM to close it out"))}
     ${field("Slow songs / slow sets?", inp("vibe.slowSets","e.g. A couple of slow sets is perfect / none please"))}
     ${field("Volume notes (venue limits, neighbours, sensory needs…)", inp("vibe.volumeNote","e.g. Venue has a 85dB limit after 11pm"))}
   </div>
@@ -603,6 +622,7 @@ function genreCycle(g){
   if(!cur) S.vibe.genres[g]="love"; else if(cur==="love") S.vibe.genres[g]="never"; else delete S.vibe.genres[g];
   save(); renderPanel();
 }
+function moodSet(k,v){ S.vibe.moods[k]=Number(v); save(); }
 function decadeToggle(d){
   const i=S.vibe.decades.indexOf(d); if(i>=0) S.vibe.decades.splice(i,1); else S.vibe.decades.push(d);
   save(); renderPanel();
@@ -695,20 +715,31 @@ function buildRunSheet(){
   };
   boardLine("must","⭐ MUST-PLAY");
   boardLine("ifcan","👍 PLAY IF YOU CAN");
+  boardLine("crowd","🎉 CROWD FAVOURITES");
   boardLine("dnp","🚫 DO NOT PLAY");
   const links=Object.entries(S.playlistLinks).filter(([,v])=>v?.trim());
   if(links.length){ push(""); push("── PLAYLIST LINKS ───────────────────────────────"); links.forEach(([k,v])=>push(`• ${k}: ${v}`)); }
   const loved=Object.keys(S.vibe.genres).filter(g=>S.vibe.genres[g]==="love");
   const never=Object.keys(S.vibe.genres).filter(g=>S.vibe.genres[g]==="never");
-  if(loved.length||never.length||S.vibe.decades.length){
+  if(loved.length||never.length||S.vibe.decades.length||Object.values(S.vibe.quiz||{}).some(v=>v?.trim())){
     push(""); push("── VIBE ─────────────────────────────────────────");
     if(loved.length) push(`Love: ${loved.join(", ")}`);
     if(never.length) push(`Never: ${never.join(", ")}`);
     if(S.vibe.decades.length) push(`Eras: ${S.vibe.decades.join(", ")}`);
+    const qz=S.vibe.quiz||{};
+    if(qz.howMet) push(`How they met: ${qz.howMet}`);
+    if(qz.ourSong) push(`Our song: ${qz.ourSong}`);
+    if(qz.threeWords) push(`Three words: ${qz.threeWords}`);
+    if(qz.mustMoment) push(`Must-have moment: ${qz.mustMoment}`);
+    if(qz.biggerDancer) push(`Bigger dancer: ${qz.biggerDancer}`);
+    if(qz.guestEnergy) push(`Guest energy: ${qz.guestEnergy}`);
+    const md=S.vibe.moods||{};
+    push(`Mood: ${md.romanticParty>=50?"Party "+md.romanticParty+"%":"Romantic "+(100-md.romanticParty)+"%"} · ${md.formalCasual>=50?"Casual "+md.formalCasual+"%":"Formal "+(100-md.formalCasual)+"%"} · ${md.lowkeyHype>=50?"Hype "+md.lowkeyHype+"%":"Lowkey "+(100-md.lowkeyHype)+"%"}`);
     push(`Clean lyrics only: ${S.vibe.cleanOnly?"YES":"No"}`);
     push(`Guest requests: ${{yes:"Yes, guests can ask",dj:"DJ decides",no:"No requests"}[S.vibe.guestRequests]}`);
-    push(`Energy (1-5): ${S.vibe.energy}`);
+    if(S.vibe.ceremonyVibe) push(`Ceremony vibe: ${S.vibe.ceremonyVibe}`);
     if(S.vibe.cocktailVibe) push(`Cocktail vibe: ${S.vibe.cocktailVibe}`);
+    if(S.vibe.lateNightVibe) push(`Late-night vibe: ${S.vibe.lateNightVibe}`);
     if(S.vibe.dinnerVibe) push(`Dinner vibe: ${S.vibe.dinnerVibe}`);
     if(S.vibe.slowSets) push(`Slow sets: ${S.vibe.slowSets}`);
     if(S.vibe.volumeNote) push(`Volume: ${S.vibe.volumeNote}`);
@@ -763,7 +794,7 @@ function vReview(){
   const sheet=buildRunSheet();
   const miss=missingEssentials();
   const conf=conflicts();
-  const total=S.boards.must.length+S.boards.ifcan.length+S.boards.dnp.length;
+  const total=S.boards.must.length+S.boards.ifcan.length+S.boards.crowd.length+S.boards.dnp.length;
   return `<h2>Review &amp; send</h2><p class="sub">This is exactly what lands in Jake's hands — his run sheet for your night. Check it, fix anything, then send it his way.</p>
   <div class="review-sec"><h3>✅ Your night at a glance</h3>
     <p style="margin:0;font-size:14.5px">${esc(S.event.names||"Your event")}${S.event.date? " · "+esc(fmtDate(S.event.date)):""}${S.event.venue? " · "+esc(S.event.venue):""}<br>
