@@ -144,6 +144,7 @@ pre.runsheet{background:#0a0a0f;border:1px solid var(--line);border-radius:12px;
 footer{margin-top:34px;text-align:center;color:var(--mut);font-size:13px}
 footer b{color:var(--txt)}
 #lovable-badge{display:none!important}
+@media(max-width:720px){#addrow{grid-template-columns:1fr!important}}
 @media print{
   body{background:#fff;color:#111}
   .progressbar,.steps,.navbtns,.actions,.toast,footer .no-print{display:none!important}
@@ -583,7 +584,7 @@ function vVibe(){
   <div style="height:14px"></div>
   <div class="field"><label>Dance-floor energy</label>
     <div class="seg">
-      ${[1,2,3,4,5].map(n=>`<button class="${S.vibe.energy===n?'on':''}" onclick="setP('vibe.energy',${n});renderPanel()">${["","Chill","","Balanced","","Full send"][n]}</button>`).join("")}
+      ${[1,2,3,4,5].map(n=>`<button class="${S.vibe.energy===n?'on':''}" onclick="setP('vibe.energy',${n});renderPanel()">${n}${n===1?" · Chill":n===3?" · Balanced":n===5?" · Full send":""}</button>`).join("")}
     </div>
     <div class="hint">1 = chill background night · 3 = balanced · 5 = full-send party, packed floor all night</div>
   </div>
