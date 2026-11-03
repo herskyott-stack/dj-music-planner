@@ -86,6 +86,19 @@ section.panel .sub{color:var(--mut);margin:0 0 20px;font-size:15px}
 .switch input:checked + .slider:before{transform:translateX(23px)}
 select.seg{appearance:none}
 input[type=range]{accent-color:var(--gold);padding:0;height:28px}
+.hero-photo{border-radius:18px;overflow:hidden;border:1px solid var(--line);margin-top:22px;position:relative;min-height:150px;background:#14141d}
+.hero-photo img{width:100%;height:220px;object-fit:cover;display:block;opacity:.85}
+.hero-photo .cap{position:absolute;left:0;right:0;bottom:0;padding:26px 18px 12px;background:linear-gradient(transparent,rgba(5,5,9,.88));font-size:13px;color:#e9e4d8}
+.searchres{display:grid;gap:8px;margin-top:10px}
+.sr{display:flex;align-items:center;gap:11px;background:#101018;border:1px solid var(--line);border-radius:11px;padding:8px 10px}
+.sr img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#222}
+.sr .st{flex:1;min-width:0}
+.sr .st b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr .st span{color:var(--mut);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.sr .addbtn{background:linear-gradient(92deg,var(--gold2),var(--gold));color:#171106;border:none;font-weight:800;border-radius:9px;padding:8px 12px;font-size:13px;white-space:nowrap}
+.sr .pvbtn{background:transparent;border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px 10px;font-size:13px}
+.mvbtn{background:transparent;border:none;color:var(--mut);font-size:13px;padding:5px 4px;border-radius:7px}
+.mvbtn:hover{color:#fff;background:rgba(255,255,255,.08)}
 /* segmented */
 .seg{display:flex;background:#0e0e14;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .seg button{flex:1;background:transparent;border:none;color:var(--mut);padding:11px 6px;font-weight:700;font-size:13.5px}
@@ -172,6 +185,7 @@ footer b{color:var(--txt)}
     <div class="kicker">Beatmaster DJ · DJ Hersky</div>
     <h1>Plan the night<br><span>they'll never forget</span></h1>
     <p>Your whole event questionnaire and song selection in one place — special moments, must-plays, the do-not-play list, your timeline, and everything Jake needs to run your night perfectly.</p>
+    <div class="hero-photo"><img src="https://beatmasterdj.ca/assets/hero-BN8uTKsx.jpg" alt="DJ Hersky performing live for a packed dance floor" loading="lazy" onerror="this.parentElement.style.display='none'"><div class="cap">🎧 <b>New in this version:</b> search real songs with artwork &amp; 30-second previews, reorder your lists, and back up your plan to move it between devices.</div></div>
     <div class="meta">Takes about <b>10–15 minutes</b> · You can <b>stop and come back anytime</b> — it saves on this device as you go · Deadline: <b>14 days before your event</b></div>
   </div>
 
@@ -197,7 +211,8 @@ footer b{color:var(--txt)}
    Beatmaster DJ sync later, plus questionnaire fields v1 never asked.
    ============================================================ */
 
-const LS_KEY = "beatmaster_music_planner_v2";
+const LS_KEY = "beatmaster_music_planner_v3";
+const LS_KEY_V2 = "beatmaster_music_planner_v2";
 
 const GENRES = ["Top 40 / Pop","Hip-Hop / R&B","Country","Rock Classics","Disco / Funk","Motown / Soul","EDM / Dance","Latin","2000s Throwbacks","90s Throwbacks","80s","70s","Oldies (50s/60s)","Indie / Alt","Punk / Emo","Jazz / Swing","French / Francophone","Line Dances","Slow Songs / Ballads"];
 const DECADES = ["2020s","2010s","2000s","90s","80s","70s","60s & earlier"];
@@ -235,19 +250,20 @@ const BOARD_SUGGESTIONS = {
   dnp: ["The Chicken Dance","Macarena","YMCA","Cotton Eye Joe","Ed Sheeran — Shape of You","Pharrell — Happy","Any line dances","Any country"]
 };
 
+const PHASES = ["Pre-Ceremony","Ceremony","Cocktail Hour","Reception","Party","Late Night","Other"];
 const WEDDING_TIMELINE_TEMPLATE = [
-  {time:"4:00 PM", title:"Ceremony", details:""},
-  {time:"4:30 PM", title:"Cocktail hour", details:"Photos for the couple"},
-  {time:"6:00 PM", title:"Guests seated · Grand entrance", details:""},
-  {time:"6:15 PM", title:"Welcome / blessing", details:""},
-  {time:"6:30 PM", title:"Dinner service starts", details:""},
-  {time:"7:30 PM", title:"Speeches / toasts", details:"Between courses"},
-  {time:"8:30 PM", title:"First dance + parent dances", details:""},
-  {time:"9:00 PM", title:"Dance floor opens", details:""},
-  {time:"10:30 PM", title:"Late-night snack", details:""},
-  {time:"11:00 PM", title:"Bouquet / garter toss", details:""},
-  {time:"12:45 AM", title:"Last dance", details:""},
-  {time:"1:00 AM", title:"Night ends", details:""}
+  {time:"4:00 PM", title:"Ceremony", details:"", phase:"Ceremony"},
+  {time:"4:30 PM", title:"Cocktail hour", details:"Photos for the couple", phase:"Cocktail Hour"},
+  {time:"6:00 PM", title:"Guests seated · Grand entrance", details:"", phase:"Reception"},
+  {time:"6:15 PM", title:"Welcome / blessing", details:"", phase:"Reception"},
+  {time:"6:30 PM", title:"Dinner service starts", details:"", phase:"Reception"},
+  {time:"7:30 PM", title:"Speeches / toasts", details:"Between courses", phase:"Reception"},
+  {time:"8:30 PM", title:"First dance + parent dances", details:"", phase:"Reception"},
+  {time:"9:00 PM", title:"Dance floor opens", details:"", phase:"Party"},
+  {time:"10:30 PM", title:"Late-night snack", details:"", phase:"Party"},
+  {time:"11:00 PM", title:"Bouquet / garter toss", details:"", phase:"Party"},
+  {time:"12:45 AM", title:"Last dance", details:"", phase:"Late Night"},
+  {time:"1:00 AM", title:"Night ends", details:"", phase:"Late Night"}
 ];
 
 function blankState(){
@@ -266,7 +282,7 @@ function blankState(){
 MOMENTS_WEDDING.concat(MOMENTS_PARTY).forEach(m=>{});
 let S = blankState();
 try{
-  const raw = localStorage.getItem(LS_KEY);
+  const raw = localStorage.getItem(LS_KEY) || localStorage.getItem(LS_KEY_V2);
   if(raw){ const parsed = JSON.parse(raw); if(parsed && typeof parsed==="object"){ const b=blankState(); S = Object.assign(b, parsed); S.vibe=Object.assign(b.vibe, parsed.vibe||{}); S.vibe.quiz=Object.assign(b.vibe.quiz,(parsed.vibe||{}).quiz||{}); S.vibe.moods=Object.assign(b.vibe.moods,(parsed.vibe||{}).moods||{}); S.boards=Object.assign(b.boards, parsed.boards||{}); } }
 }catch(e){}
 
@@ -361,6 +377,7 @@ function renderSteps(){
   stepsEl.innerHTML=SECTIONS.map((s,i)=>`<button class="stepbtn ${i===curSection?'active':''}" onclick="go(${i})"><span class="dot">${sectionDone(i)?'✓':(i+1)}</span>${s.label}</button>`).join("");
 }
 function go(i){
+  stopPreview();
   curSection=i; renderSteps(); renderPanel(); window.scrollTo({top:120,behavior:"smooth"});
 }
 function navBtns(){
@@ -477,6 +494,10 @@ function vMoments(){
       <div style="height:9px"></div>
       <input placeholder="Notes — who's involved, anything Jake should know (optional)" value="${esc(v.notes||'')}" oninput="momentSet('${m.id}','notes',this.value)">
       ${m.suggestions.length?`<div class="suggest"><span style="font-size:12px;color:var(--mut);align-self:center">Popular picks:</span>${m.suggestions.map(s=>`<button onclick="momentSuggest('${m.id}','${esc(s).replace(/'/g,"\\'")}')">${esc(s)}</button>`).join("")}</div>`:""}
+      <div style="margin-top:10px">
+        <input placeholder="🔍 Search the exact song for this moment…" id="ms-${m.id}" oninput="searchType('ms-${m.id}','mb-${m.id}','${m.id}')" autocomplete="off">
+        <div id="mb-${m.id}"></div>
+      </div>
       <div style="display:flex;gap:18px;flex-wrap:wrap">
         <label class="mini-check"><input type="checkbox" ${v.surprise?"checked":""} onchange="momentSet('${m.id}','surprise',this.checked)"> Surprise us / Jake's choice</label>
         <label class="mini-check"><input type="checkbox" ${v.skip?"checked":""} onchange="momentSet('${m.id}','skip',this.checked)"> We're skipping this one</label>
@@ -507,13 +528,18 @@ function vSongs(){
   const dnpKeys=new Set(S.boards.dnp.map(s=>songKey(s.title,s.artist)));
   const rows=list.length? list.map((s,i)=>{
     const isConf=(curBoard!=="dnp" && dnpKeys.has(songKey(s.title,s.artist)));
-    return `<div class="song ${isConf?'conflict':''}"><span class="idx">${i+1}</span><div class="st"><b>${esc(s.title)}</b>${s.artist?`<span>${esc(s.artist)}</span>`:""}${isConf?`<span style="color:#ffb3ad">⚠ Also on your Do Not Play list — remove it from one of them</span>`:""}</div><button class="iconbtn" title="Remove" onclick="songDel('${curBoard}',${i})">🗑</button></div>`;
+    return `<div class="song ${isConf?'conflict':''}"><span class="idx">${i+1}</span><div class="st"><b>${esc(s.title)}</b>${s.artist?`<span>${esc(s.artist)}</span>`:""}${isConf?`<span style="color:#ffb3ad">⚠ Also on your Do Not Play list — remove it from one of them</span>`:""}</div><button class="mvbtn" title="Move up" onclick="songMove('${curBoard}',${i},-1)">↑</button><button class="mvbtn" title="Move down" onclick="songMove('${curBoard}',${i},1)">↓</button><button class="iconbtn" title="Remove" onclick="songDel('${curBoard}',${i})">🗑</button></div>`;
   }).join("") : `<div class="empty">Nothing here yet — add your first song above, paste a whole list, or tap a suggestion below.</div>`;
   const mins=Math.round(list.length*3.5);
   return `<h2>Your song lists</h2><p class="sub">Three lists, zero confusion. Add songs one by one, or paste a whole playlist at once.</p>
   ${conf.length?`<p class="callout red">⚠️ <b>Conflict:</b> ${esc(conf.join(", "))} is on both a play list <i>and</i> your Do Not Play list. Fix it below so Jake knows which one wins.</p>`:""}
   <div class="board-tabs">${tabs}</div>
   <p class="hint" style="font-size:13.5px;margin:10px 0 14px">${BOARD_META[curBoard].desc}</p>
+  <div class="field"><label>🔍 Search real songs<small>Powered by the Apple Music catalogue — artwork, exact versions, and 30-second previews so you know it's the right one.</small></label>
+    <input id="songSearch" placeholder="Start typing a song or artist…" oninput="searchType('songSearch','searchBox','board')" autocomplete="off">
+    <div id="searchBox"></div>
+  </div>
+  <div style="height:14px"></div>
   <div class="grid" style="grid-template-columns:1.2fr 1fr auto;gap:9px" id="addrow">
     <input id="nsTitle" placeholder="Song title" onkeydown="if(event.key==='Enter')songAdd()">
     <input id="nsArtist" placeholder="Artist" onkeydown="if(event.key==='Enter')songAdd()">
@@ -537,7 +563,46 @@ function vSongs(){
   <div class="meter">${curBoard!=="dnp" && list.length?`⏱ That's about <b>${mins} minutes</b> of music on this list. `:''}${curBoard==="must" && list.length>BOARD_META.must.cap?`<span style="color:#ffb3ad">Over ${BOARD_META.must.cap} must-plays gets hard to guarantee in one night — move the extras to Play If You Can.</span>`:''}</div>
   <div class="suggest" style="margin-top:14px"><span style="font-size:12px;color:var(--mut);align-self:center">Need ideas? Tap to add:</span>${BOARD_SUGGESTIONS[curBoard].map(s=>`<button onclick="songSuggest('${esc(s).replace(/'/g,"\\'")}')">${esc(s)}</button>`).join("")}</div>`;
 }
-function boardGo(b){ curBoard=b; renderPanel(); }
+/* ---- real song search (Apple Music / iTunes catalogue, no key needed) ---- */
+let _caches={}, _audio=null, _audioBtn=null;
+function stopPreview(){ if(_audio){ _audio.pause(); _audio=null; } if(_audioBtn){ _audioBtn.textContent="▶"; _audioBtn=null; } }
+function togglePreview(boxId, i, btn){
+  const t=(_caches[boxId]||[])[i]; if(!t || !t.preview) return;
+  if(_audioBtn===btn){ stopPreview(); return; }
+  stopPreview();
+  _audio=new Audio(t.preview); _audioBtn=btn; btn.textContent="⏸";
+  _audio.onended=()=>stopPreview();
+  _audio.play().catch(()=>{ toast("Preview couldn't play — add it anyway if you know it"); stopPreview(); });
+}
+async function runSearch(inputId, boxId, target){
+  const q=document.getElementById(inputId).value.trim();
+  const box=document.getElementById(boxId);
+  if(q.length<2){ box.innerHTML=""; return; }
+  box.innerHTML='<div class="hint" style="padding:6px 2px">Searching the catalogue…</div>';
+  try{
+    const res=await fetch("https://itunes.apple.com/search?media=music&entity=song&limit=8&term="+encodeURIComponent(q));
+    const data=await res.json();
+    const cache=(data.results||[]).map(r=>({title:r.trackName||"", artist:r.artistName||"", album:r.collectionName||"", art:(r.artworkUrl100||"").replace("100x100","200x200"), preview:r.previewUrl||"", link:r.trackViewUrl||""}));
+    _caches[boxId]=cache;
+    if(!cache.length){ box.innerHTML='<div class="hint" style="padding:6px 2px">No matches — use the manual add below instead.</div>'; return; }
+    box.innerHTML='<div class="searchres">'+cache.map((t,i)=>'<div class="sr">'+(t.art?'<img src="'+esc(t.art)+'" alt="">':'<img alt="">')+'<div class="st"><b>'+esc(t.title)+'</b><span>'+esc(t.artist)+(t.album?" · "+esc(t.album):"")+'</span></div>'+(t.preview?'<button class="pvbtn" title="Play 30-second preview" onclick="togglePreview(\''+boxId+'\','+i+',this)">▶</button>':"")+'<button class="addbtn" onclick="searchAdd(\''+target+'\',\''+boxId+'\','+i+')">+ Add</button></div>').join("")+'</div>';
+  }catch(e){
+    box.innerHTML='<div class="hint" style="padding:6px 2px">Search is unavailable right now (offline?) — manual add below still works.</div>';
+  }
+}
+function searchAdd(target, boxId, i){
+  const t=(_caches[boxId]||[])[i]; if(!t) return;
+  if(target==="board"){
+    if(addSongTo(curBoard, t.title, t.artist)){ save(); renderPanel(); toast("Added ✓"); } else toast("Already on this list");
+  } else {
+    if(!S.moments[target]) S.moments[target]={};
+    S.moments[target].title=t.title; S.moments[target].artist=t.artist; if(t.link) S.moments[target].link=t.link;
+    save(); renderPanel(); toast("Set for that moment ✓");
+  }
+}
+let _deb=null;
+function searchType(inputId, boxId, target){ clearTimeout(_deb); _deb=setTimeout(()=>runSearch(inputId, boxId, target), 350); }
+function boardGo(b){ stopPreview(); curBoard=b; renderPanel(); }
 function addSongTo(board, title, artist){
   title=(title||"").trim(); if(!title) return false;
   artist=(artist||"").trim();
@@ -563,6 +628,7 @@ function bulkAdd(){
   toast(added? `Added ${added} song${added===1?'':'s'} ✓` : "All of those were already on the list");
 }
 function songDel(board,i){ S.boards[board].splice(i,1); save(); renderPanel(); }
+function songMove(board,i,d){ const a=S.boards[board]; const j=i+d; if(j<0||j>=a.length) return; [a[i],a[j]]=[a[j],a[i]]; save(); renderPanel(); }
 
 /* ---------- 5 VIBE ---------- */
 function vVibe(){
@@ -634,7 +700,8 @@ function vTimeline(){
     <div class="tlrow">
       <input placeholder="6:00 PM" value="${esc(r.time)}" oninput="tlSet(${i},'time',this.value)">
       <div><input placeholder="What's happening" value="${esc(r.title)}" oninput="tlSet(${i},'title',this.value)">
-      <input placeholder="Details (optional)" value="${esc(r.details)}" style="margin-top:6px" oninput="tlSet(${i},'details',this.value)"></div>
+      <div style="display:grid;grid-template-columns:1fr 140px;gap:6px;margin-top:6px"><input placeholder="Details (optional)" value="${esc(r.details)}" oninput="tlSet(${i},'details',this.value)">
+      <select onchange="tlSet(${i},'phase',this.value)" title="Part of the night">${PHASES.map(p=>`<option value="${p}" ${r.phase===p?'selected':''}>${p}</option>`).join("")}</select></div></div>
       <button class="iconbtn" title="Remove" onclick="tlDel(${i})">🗑</button>
     </div>`).join("");
   return `<h2>Your timeline</h2><p class="sub">Jake runs your night off this. Even a rough version beats a perfect one that never gets sent — times can shift, order is what matters.</p>
@@ -643,7 +710,7 @@ function vTimeline(){
   <button class="btn ghost" style="padding:9px 16px;font-size:13.5px" onclick="tlAdd()">+ Add a moment</button>
   <p class="hint" style="margin-top:14px">Include: ceremony, cocktails, dinner, speeches, first dance, when the bar closes, late-night snack, last song, and what time the venue kicks everyone out.</p>`;
 }
-function tlAdd(){ S.timeline.push({time:"",title:"",details:""}); save(); renderPanel(); }
+function tlAdd(){ S.timeline.push({time:"",title:"",details:"",phase:"Reception"}); save(); renderPanel(); }
 function tlDel(i){ S.timeline.splice(i,1); save(); renderPanel(); }
 function tlSet(i,k,v){ S.timeline[i][k]=v; save(); }
 function tlTemplate(){ S.timeline=JSON.parse(JSON.stringify(WEDDING_TIMELINE_TEMPLATE)); save(); renderPanel(); toast("Template loaded — make it yours ✓"); }
@@ -747,7 +814,7 @@ function buildRunSheet(){
   }
   if(S.timeline.length){
     push(""); push("── TIMELINE ─────────────────────────────────────");
-    S.timeline.forEach(r=>{ if(r.title||r.time) push(`${(r.time||"—").padEnd(9)} ${r.title}${r.details? " — "+r.details:""}`); });
+    S.timeline.forEach(r=>{ if(r.title||r.time) push(`${(r.time||"—").padEnd(9)} ${r.title}${r.phase? "  ["+r.phase+"]":""}${r.details? " — "+r.details:""}`); });
   }
   if(S.people.pronunciations||S.people.intros.some(r=>r.names.trim())||S.people.speeches){
     push(""); push("── PEOPLE & MC ──────────────────────────────────");
@@ -790,12 +857,21 @@ function missingEssentials(){
   if(!S.logistics.dayContact) m.push("A day-of contact who isn't you (Logistics)");
   return m;
 }
+function nightInOneSentence(){
+  const loved=Object.keys(S.vibe.genres).filter(g=>S.vibe.genres[g]==="love").slice(0,3);
+  const md=S.vibe.moods||{romanticParty:50,formalCasual:50,lowkeyHype:50};
+  const feel=[md.romanticParty>=60?"party-forward":md.romanticParty<=40?"romantic":"balanced", md.lowkeyHype>=60?"high-energy":md.lowkeyHype<=40?"lowkey":"easygoing"].join(" and ");
+  const fd=S.moments["first_dance"];
+  const nm=S.event.names; const poss=!nm?"Your night":nm+(nm.endsWith("s")?"'":"'s")+" night";
+  return `${poss}: a ${feel} ${S.event.type==="Wedding"?"wedding":"event"}${S.event.venue? " at "+S.event.venue:""}${loved.length? ", built on "+loved.join(", "):""}${fd&&fd.title? ', with "'+fd.title+'" as the first dance':""} — ${S.boards.must.length} must-plays, ${S.boards.dnp.length} hard no's, and a floor that stays full.`;
+}
 function vReview(){
   const sheet=buildRunSheet();
   const miss=missingEssentials();
   const conf=conflicts();
   const total=S.boards.must.length+S.boards.ifcan.length+S.boards.crowd.length+S.boards.dnp.length;
   return `<h2>Review &amp; send</h2><p class="sub">This is exactly what lands in Jake's hands — his run sheet for your night. Check it, fix anything, then send it his way.</p>
+  <div class="review-sec"><h3>✨ Your night in one sentence</h3><p style="margin:0;font-size:15.5px;font-style:italic">"${esc(nightInOneSentence())}"</p></div>
   <div class="review-sec"><h3>✅ Your night at a glance</h3>
     <p style="margin:0;font-size:14.5px">${esc(S.event.names||"Your event")}${S.event.date? " · "+esc(fmtDate(S.event.date)):""}${S.event.venue? " · "+esc(S.event.venue):""}<br>
     <span style="color:var(--mut)">${total} songs listed · ${momentsFor().filter(m=>{const v=S.moments[m.id]; return v&&(v.title?.trim()||v.skip||v.surprise);}).length} of ${momentsFor().length} special moments covered · ${S.timeline.length} timeline items · ${overallPct()}% complete</span></p>
@@ -809,6 +885,12 @@ function vReview(){
     <button class="btn big blue" onclick="emailSheet()">✉️ Copy + email it to Jake</button>
     <button class="btn ghost" onclick="downloadSheet()">⬇ Download .txt</button>
     <button class="btn ghost" onclick="window.print()">🖨 Print / Save as PDF</button>
+    <button class="btn ghost" onclick="shareSheet()">📤 Share run sheet</button>
+    <button class="btn ghost" onclick="downloadBackup()">💾 Backup my plan (.json)</button>
+  </div>
+  <div class="field" style="margin-top:16px"><label>Moving to another phone / device?</label>
+    <div class="hint" style="margin-bottom:8px">Download the backup above on this device, then open this planner on the other one and restore it here — everything (songs, timeline, answers) travels with it.</div>
+    <input type="file" accept=".json,application/json" onchange="restoreBackup(this)">
   </div>
   <p class="callout" style="margin-top:18px">📬 <b>How sending works:</b> tap <b>Copy + email it to Jake</b> — your run sheet is copied and an email to hersky.ott@gmail.com opens with the subject filled in. Just paste (long-press / Ctrl+V) and hit send. Prefer text? Copy it and send it to <b>(613) 837-4488</b>. Jake confirms back once he's reviewed it.</p>
   <p class="hint">Changed your mind on something after sending? Just update this page and send a fresh copy — the newest one always wins. Final version is due 14 days before your event.</p>
@@ -846,6 +928,30 @@ function downloadSheet(){
   a.href=URL.createObjectURL(blob);
   a.download=`music-planner-${(S.event.names||"event").replace(/[^a-z0-9]+/gi,"-").toLowerCase()}.txt`;
   a.click(); URL.revokeObjectURL(a.href); markSent(); toast("Downloaded ✓");
+}
+async function shareSheet(){
+  const sheet=buildRunSheet(); markSent();
+  if(navigator.share){ try{ await navigator.share({title:"Our Music Planner — Beatmaster DJ", text:sheet}); toast("Shared ✓"); return; }catch(e){ if(e && e.name==="AbortError") return; } }
+  copySheet(); toast("No share sheet here — run sheet copied instead ✓");
+}
+function downloadBackup(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`music-planner-backup-${(S.event.names||"event").replace(/[^a-z0-9]+/gi,"-").toLowerCase()}.json`;
+  a.click(); URL.revokeObjectURL(a.href); toast("Backup downloaded ✓");
+}
+function restoreBackup(input){
+  const f=input.files && input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{
+      const parsed=JSON.parse(r.result);
+      if(!parsed || typeof parsed!=="object" || !parsed.event || !parsed.boards) throw new Error("bad file");
+      const b=blankState(); S=Object.assign(b, parsed);
+      S.vibe=Object.assign(b.vibe, parsed.vibe||{}); S.boards=Object.assign(b.boards, parsed.boards||{});
+      save(); renderPanel(); toast("Plan restored ✓");
+    }catch(e){ toast("That file doesn't look like a planner backup"); } };
+  r.readAsText(f);
 }
 function resetAll(){
   if(!confirm("Erase everything you've entered on this device and start fresh?")) return;
