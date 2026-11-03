@@ -30,3 +30,12 @@ Live URL will be https://herskyott-stack.github.io/dj-music-planner/
 ## Later wiring options
 - Point a beatmasterdj.ca link (e.g. /planner) at it, or drop the file into the beatmasterdj repo `public/` folder.
 - Data model mirrors the existing Vibe Planner sync shape (music / notes / playlists / timeline / addons) so it can POST into `sync-planner-data` later if Jake wants submissions saved to Supabase instead of emailed run sheets.
+
+## v3 (2026-11-03) — "same again, better"
+- **Real song search** (Apple Music / iTunes catalogue, no API key): type → results with artwork + exact versions + **30-second previews** → one tap adds to the current list. Also embedded per special moment. Manual add + bulk paste remain as fallbacks; per-box result caches so parallel moment searches can't cross-add.
+- **Reorder** any song list with ↑ / ↓.
+- **Timeline phases** per row (Pre-Ceremony → Late Night), template carries phases, run sheet prints them.
+- **Plan backup / restore** (.json download + file restore) so couples can move devices; v3 auto-migrates v2 saves from the same browser.
+- **Share sheet** (Web Share API, copy fallback) + **"Your night in one sentence"** summary in Review.
+- Hero now carries Jake's real dance-floor photo from beatmasterdj.ca (hides itself if the asset moves).
+- Verified: node logic tests (render all sections/boards, phases, reorder, summary, run sheet) + live iTunes endpoint test + live surface byte-identical to source.
